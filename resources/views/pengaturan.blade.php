@@ -67,6 +67,14 @@
     <form method="POST" action="/pengaturan/password" class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
       @csrf
       <h2 class="font-extrabold">Ganti Password</h2>
+      @php
+        $berlaku = $u->passwordBerlakuSampai();
+        $sisaHari = (int) now()->diffInDays($berlaku, false);
+      @endphp
+      <div class="rounded-2xl p-4 text-sm {{ $sisaHari <= 14 ? 'bg-yellow-50 text-yellow-800' : 'bg-green-50 text-green-800' }}">
+        Password berlaku sampai <b>{{ $berlaku->locale('id')->translatedFormat('d F Y') }}</b> ({{ $sisaHari }} hari lagi).
+        @if ($sisaHari <= 14) Segera ganti password. @endif
+      </div>
       @if ($ok('password')) <div class="bg-green-50 text-green-800 text-sm rounded-lg p-3">{{ $ok('password') }}</div> @endif
       @foreach ($errors->password->all() as $e) <p class="text-sm text-red-600">{{ $e }}</p> @endforeach
 
@@ -91,6 +99,35 @@
 
       <button class="bg-green-800 text-white rounded-lg px-5 py-2 text-sm font-semibold hover:bg-green-900">Ganti PIN</button>
     </form>
+
+    @if (in_array($u->role, ['donatur', 'penerima']))
+      @php $halangan = $u->penghalangHapusAkun(); @endphp
+      <details class="bg-white rounded-2xl shadow-sm border border-red-200" @if ($errors->hapus->any()) open @endif>
+        <summary class="list-none cursor-pointer px-6 py-4 font-extrabold text-red-600">Hapus Akun</summary>
+        <form method="POST" action="/pengaturan/hapus-akun" class="px-6 pb-6 space-y-3"
+              onsubmit="return confirm('Akun dan datamu akan dihapus permanen. Lanjutkan?')">
+          @csrf
+          <div class="bg-red-50 text-red-700 text-sm rounded-lg p-3 space-y-1">
+            <p class="font-semibold">Tindakan ini tidak bisa dibatalkan.</p>
+            <p>Yang ikut terhapus: profil dan foto profil,
+              @if ($u->role === 'donatur') semua barangmu beserta fotonya,
+              @else surat keterangan dan semua permintaanmu, @endif
+              dan akses masuk ke akun ini. Salinan data di berkas cadangan sistem dihapus otomatis setelah masa simpan cadangan habis.</p>
+          </div>
+
+          @if ($halangan)
+            <div class="bg-yellow-50 text-yellow-800 text-sm rounded-lg p-3">{{ $halangan }}</div>
+          @endif
+          @foreach ($errors->hapus->all() as $e) <p class="text-sm text-red-600">{{ $e }}</p> @endforeach
+
+          <input type="password" name="password_hapus" placeholder="Password" class="w-full border rounded-lg px-3 py-2" required>
+          <input type="password" name="pin_hapus" inputmode="numeric" maxlength="6" placeholder="PIN" class="w-full border rounded-lg px-3 py-2 tracking-widest" required>
+          <input name="konfirmasi" placeholder="Ketik HAPUS untuk konfirmasi" class="w-full border rounded-lg px-3 py-2" autocomplete="off" required>
+
+          <button class="bg-red-600 text-white rounded-lg px-5 py-2 text-sm font-semibold hover:bg-red-700 disabled:bg-gray-300" @disabled($halangan)>Hapus Akun Saya</button>
+        </form>
+      </details>
+    @endif
   </div>
 
   @if ($punyaLokasi)

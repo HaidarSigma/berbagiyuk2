@@ -28,6 +28,7 @@ class AuthController extends Controller
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
         $data['password'] = bcrypt($data['password']);
+        $data['password_changed_at'] = now();
 
         if ($data['role'] === 'penerima') {
         $nama = 'dokumen/'.\Illuminate\Support\Str::uuid().'.'.$r->file('dokumen')->extension().'.enc';
@@ -47,10 +48,21 @@ $data['dokumen'] = $nama;
 public function masuk(Request $r)
 {
     if (Auth::attempt($r->only('email', 'password'))) {
+        if (! Auth::user()->aktif) {
+            \App\Models\LogAktivitas::catat('login_ditolak_nonaktif', 'Email: '.$r->email);
+            Auth::logout();
+            $r->session()->invalidate();
+            $r->session()->regenerateToken();
+            return back()->withErrors(['email' => 'Akun ini dinonaktifkan. Hubungi admin.'])->onlyInput('email');
+        }
+
         $r->session()->regenerate();
         $r->session()->forget('pin_ok');
-        return redirect('/pin/masuk');
+        \App\Models\LogAktivitas::catat('login');
+        return redirect()->intended('/pin/masuk');
     }
+
+    \App\Models\LogAktivitas::catat('login_gagal', 'Email: '.$r->email);
     return back()->withErrors(['email' => 'Email atau password salah.'])->onlyInput('email');
 }
 

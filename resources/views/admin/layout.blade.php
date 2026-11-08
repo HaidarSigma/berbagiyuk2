@@ -11,7 +11,7 @@
 
 @php
   $item = 'flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-left';
-  $menu = [['/admin', '📊', 'Dashboard'], ['/admin/barang', '✅', 'Verifikasi Barang'], ['/admin/penerima', '👥', 'Verifikasi Penerima'], ['/admin/permintaan', '📨', 'Permintaan Masuk'],['/admin/log', '🧾', 'Log Aktivitas']];
+  $menu = [['/admin', '📊', 'Dashboard'], ['/admin/barang', '✅', 'Verifikasi Barang'], ['/admin/penerima', '👥', 'Verifikasi Penerima'], ['/admin/permintaan', '📨', 'Permintaan Masuk'],['/admin/log', '🧾', 'Log Aktivitas'],['/admin/pengguna', '👤', 'Kelola Pengguna']];
 @endphp
 
 <div class="flex min-h-screen">

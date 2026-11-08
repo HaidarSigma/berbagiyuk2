@@ -9,6 +9,15 @@
   <script>
     tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'], hand: ['Caveat', 'cursive'] } } } }
   </script>
+  <style>
+    body {
+      background-color: #f0f7f2 !important;
+      background-image:
+        radial-gradient(ellipse at 8% 12%, rgba(134, 239, 172, 0.42), transparent 42%),
+        radial-gradient(ellipse at 92% 78%, rgba(167, 243, 208, 0.48), transparent 40%) !important;
+      background-attachment: fixed !important;
+    }
+  </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
 
@@ -21,8 +30,7 @@
 {{-- Navbar --}}
 <nav class="bg-white/90 backdrop-blur sticky top-0 z-30 border-b border-gray-100">
   <div class="max-w-6xl mx-auto flex items-center justify-between gap-4 px-4 py-3">
-    <a href="/" class="flex items-center gap-2">
-      <span class="w-10 h-10 rounded-xl bg-green-800 text-white flex items-center justify-center text-xl">♥</span>
+    <a href="/">
       <span>
         <span class="block text-xl font-extrabold text-green-800 leading-none">BerbagiYuk</span>
         <span class="block text-[11px] text-gray-500">Berbagi Sedikit, Berarti Banyak.</span>

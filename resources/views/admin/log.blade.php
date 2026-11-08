@@ -1,7 +1,7 @@
 @extends('admin.layout')
 @section('judul', 'Log Aktivitas')
 @section('isi')
-   @php $waspada = ['login_gagal', 'pin_salah', 'pin_terkunci', 'dokumen_dibuka', 'reset_gagal', 'reset_staf_ditolak']; @endphp
+   @php $waspada = ['login_gagal', 'pin_salah', 'pin_terkunci', 'dokumen_dibuka', 'reset_gagal', 'reset_staf_ditolak', 'login_ditolak_nonaktif', 'sesi_ditolak_nonaktif']; @endphp
 
   <div class="grid sm:grid-cols-2 gap-4 mb-5">
     <div class="bg-white rounded-2xl p-4 shadow-sm">

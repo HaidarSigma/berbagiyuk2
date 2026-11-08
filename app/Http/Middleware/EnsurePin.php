@@ -16,9 +16,19 @@ class EnsurePin
 public function handle(Request $request, Closure $next)
 {
     $u = $request->user();
+
+    if (! $u->aktif) {
+        \App\Models\LogAktivitas::catat('sesi_ditolak_nonaktif');
+        auth()->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/masuk')->withErrors(['email' => 'Akun ini dinonaktifkan. Hubungi admin.']);
+    }
+
     if (! $u->hasVerifiedEmail()) return redirect()->route('verification.notice');
     if (! $u->pin) return redirect('/pin/buat');
     if (! $request->session()->get('pin_ok')) return redirect('/pin/masuk');
+
     return $next($request);
 }
 }

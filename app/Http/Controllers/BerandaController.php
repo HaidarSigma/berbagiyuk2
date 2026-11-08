@@ -16,6 +16,11 @@ class BerandaController extends Controller
             return redirect('/admin');
         }
 
+        $u = auth()->user();
+        if ($u && session('pin_ok') && $u->passwordKedaluwarsa()) {
+            return redirect('/password/kedaluwarsa');
+        }
+
         return view('beranda', [
             'kategori' => Kategori::all(),
             'barang'   => Barang::with('kategori')->where('status', 'tersedia')->where('verifikasi', 'disetujui')->latest()->take(8)->get(),

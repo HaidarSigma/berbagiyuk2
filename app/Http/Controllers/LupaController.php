@@ -112,7 +112,10 @@ class LupaController extends Controller
     ['password' => ['required', 'confirmed', new \App\Rules\PasswordKuat]],
     ['password.confirmed' => 'Konfirmasi password tidak cocok.']
 );
-            $user->forceFill(['password' => bcrypt($r->password)])->save();
+            $user->forceFill([
+                'password' => bcrypt($r->password),
+                'password_changed_at' => now(),
+            ])->save();
         } else {
             $r->validate(['pin' => 'required|digits:6|confirmed']);
             $user->forceFill(['pin' => Hash::make($r->pin), 'pin_percobaan' => 0, 'pin_terkunci_sampai' => null])->save();

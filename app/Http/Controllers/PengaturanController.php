@@ -8,6 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Barang;
+use App\Models\ResetKode;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PengaturanController extends Controller
 {
@@ -57,7 +61,7 @@ class PengaturanController extends Controller
             return back()->withErrors(['password_lama' => 'Password lama salah.'], 'password');
         }
 
-        $u->forceFill(['password' => bcrypt($r->password)])->save();
+        $u->forceFill(['password' => bcrypt($r->password), 'password_changed_at' => now()])->save();
         LogAktivitas::catat('password_diganti');
 
         try {
@@ -125,5 +129,69 @@ public function hapusFoto(Request $r)
     LogAktivitas::catat('foto_profil_dihapus');
 
     return back()->with('status', 'Foto profil dihapus.')->with('bagian', 'foto');
+}
+
+public function hapusAkun(Request $r)
+{
+    $u = $r->user();
+    abort_unless(in_array($u->role, ['donatur', 'penerima']), 403);
+
+    $r->validateWithBag('hapus', [
+        'password_hapus' => 'required',
+        'pin_hapus'      => 'required|digits:6',
+        'konfirmasi'     => 'required|in:HAPUS',
+    ], [
+        'konfirmasi.in'       => 'Ketik HAPUS (huruf besar) untuk mengonfirmasi.',
+        'password_hapus.required' => 'Password wajib diisi.',
+        'pin_hapus.required'  => 'PIN wajib diisi.',
+        'pin_hapus.digits'    => 'PIN harus 6 angka.',
+    ]);
+
+    if (! Hash::check($r->password_hapus, $u->password) || ! Hash::check($r->pin_hapus, $u->pin)) {
+        LogAktivitas::catat('hapus_akun_gagal', 'Password atau PIN salah');
+        return back()->withErrors(['password_hapus' => 'Password atau PIN salah.'], 'hapus');
+    }
+
+    if ($alasan = $u->penghalangHapusAkun()) {
+        return back()->withErrors(['password_hapus' => $alasan], 'hapus');
+    }
+
+    // Kumpulkan berkas yang harus ikut dihapus sebelum barisnya hilang
+    $berkasPublik = Barang::where('user_id', $u->id)->pluck('foto')->filter()->all();
+    if ($u->foto_profil) {
+        $berkasPublik[] = $u->foto_profil;
+    }
+    $dokumen = $u->dokumen;
+    $id      = $u->id;
+    $peran   = $u->role;
+    $email   = $u->email;
+
+    DB::transaction(function () use ($u, $email) {
+        $u->tokens()->delete();
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
+        ResetKode::where('email', $email)->delete();
+        // Barang, permintaan, dan relasi lain ikut terhapus lewat cascade di database.
+        $u->delete();
+    });
+
+    Storage::disk('public')->delete($berkasPublik);
+    if ($dokumen) {
+        Storage::disk('local')->delete($dokumen);
+    }
+
+    try {
+        Mail::raw('Akun BerbagiYuk kamu telah dihapus atas permintaanmu sendiri. Jika bukan kamu yang melakukannya, segera hubungi admin.',
+            fn ($m) => $m->to($email)->subject('Akun BerbagiYuk dihapus'));
+    } catch (\Throwable $e) {
+        report($e);
+    }
+
+    Auth::logout();
+    $r->session()->invalidate();
+    $r->session()->regenerateToken();
+
+    LogAktivitas::catat('akun_dihapus', "ID {$id} | {$peran}");
+
+    return redirect('/')->with('status', 'Akunmu telah dihapus.');
 }
 }

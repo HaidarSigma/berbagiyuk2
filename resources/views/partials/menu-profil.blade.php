@@ -23,6 +23,9 @@
           @if ($u->role === 'admin')
             <a href="/admin" class="block px-4 py-2 hover:bg-gray-50">🛠️ Panel Admin</a>
           @endif
+          @if ($u->role === 'petugas')
+          <a href="/petugas" class="block px-4 py-2 hover:bg-gray-50">🚚 Panel Petugas</a>
+          @endif
           @if ($u->role === 'donatur')
             <a href="/barang-saya" class="block px-4 py-2 hover:bg-gray-50">📦 Barang Saya</a>
           @endif

@@ -12,6 +12,7 @@ use App\Models\Barang;
 use App\Models\ResetKode;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Support\Wilayah;
 
 class PengaturanController extends Controller
 {
@@ -30,8 +31,7 @@ class PengaturanController extends Controller
             'name'      => 'required|string|max:100',
             'no_hp'     => 'required|string|max:20',
             'alamat'    => $wajib.'|string',
-            'latitude'  => $wajib.'|numeric',
-            'longitude' => $wajib.'|numeric',
+            ...Wilayah::aturan($lokasi),
         ]);
 
         if (! $lokasi) {
@@ -98,6 +98,10 @@ class PengaturanController extends Controller
     }
     public function foto(Request $r)
 {
+    if (! $r->boolean('submit_foto')) {
+        return back()->withErrors(['foto' => 'Klik tombol Unggah Foto untuk mengunggah.'], 'foto');
+    }
+
     $r->validateWithBag('foto', [
         'foto' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
     ], [

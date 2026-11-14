@@ -14,4 +14,5 @@ class Permintaan extends Model
 
     public function barang() { return $this->belongsTo(Barang::class); }
     public function penerima() { return $this->belongsTo(User::class, 'penerima_id'); }
+    public function tugas() { return $this->hasOne(Tugas::class); }
 }

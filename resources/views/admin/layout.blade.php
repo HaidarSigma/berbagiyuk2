@@ -11,7 +11,7 @@
 
 @php
   $item = 'flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-left';
-  $menu = [['/admin', '📊', 'Dashboard'], ['/admin/barang', '✅', 'Verifikasi Barang'], ['/admin/penerima', '👥', 'Verifikasi Penerima'], ['/admin/permintaan', '📨', 'Permintaan Masuk'],['/admin/log', '🧾', 'Log Aktivitas'],['/admin/pengguna', '👤', 'Kelola Pengguna']];
+  $menu = [['/admin', '📊', 'Dashboard'], ['/admin/barang', '✅', 'Verifikasi Barang'], ['/admin/penerima', '👥', 'Verifikasi Penerima'], ['/admin/permintaan', '📨', 'Permintaan Masuk'],['/admin/log', '🧾', 'Log Aktivitas'],['/admin/pengguna', '👤', 'Kelola Pengguna'],['/admin/kebutuhan', '🚨', 'Kebutuhan Mendesak']];
 @endphp
 
 <div class="flex min-h-screen">
@@ -27,6 +27,9 @@
       @foreach ($menu as [$url, $ic, $nama])
         <a href="{{ $url }}" class="{{ $item }} {{ request()->is(trim($url, '/')) ? 'bg-green-700 text-white font-semibold' : 'hover:bg-green-800' }}">
           <span class="w-5 text-center">{{ $ic }}</span><span>{{ $nama }}</span>
+@if (($badge[$url] ?? 0) > 0)
+  <span class="ml-auto text-[11px] bg-red-500 text-white rounded-full px-2 py-0.5">{{ $badge[$url] }}</span>
+@endif
         </a>
       @endforeach
     </nav>
@@ -51,13 +54,14 @@
         <span class="md:hidden flex gap-3 text-green-800 font-semibold">
           <a href="/admin">Dashboard</a><a href="/admin/barang">Verifikasi</a>
         </span>
-        <div class="w-8 h-8 rounded-full bg-green-800 text-white flex items-center justify-center font-bold">
-          {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-        </div>
+        @if (auth()->user()->foto_profil)
+          <img src="{{ asset('storage/'.auth()->user()->foto_profil) }}" class="w-8 h-8 rounded-full object-cover" alt="Foto profil">
+        @else
+          <div class="w-8 h-8 rounded-full bg-green-800 text-white flex items-center justify-center font-bold">
+            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+          </div>
+        @endif
         <span class="hidden sm:block font-semibold">{{ auth()->user()->name }}</span>
-        <form method="POST" action="/keluar">@csrf
-          <button class="border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition">Keluar</button>
-        </form>
       </div>
     </header>
 
@@ -69,6 +73,6 @@
     </main>
   </div>
 </div>
-
+@include('partials.toast')
 </body>
 </html>

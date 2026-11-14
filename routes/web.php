@@ -14,11 +14,17 @@ use App\Http\Controllers\PenerimaController;
 use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\PermintaanController;
 use App\Http\Controllers\PinController;
+use App\Http\Controllers\PetugasController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\KedaluwarsaController;
+use App\Http\Controllers\KebutuhanController;
+use App\Http\Controllers\AdminKebutuhanController;
 
 // ---------- Publik ----------
+Route::view('/tentang', 'tentang');
+Route::view('/aturan', 'aturan');
+Route::get('/kebutuhan', [KebutuhanController::class, 'index']);
 Route::get('/', [BerandaController::class, 'index']);
 Route::get('/cari', [BarangController::class, 'index']);
 Route::get('/barang/{barang}', [BarangController::class, 'show']);
@@ -76,7 +82,9 @@ Route::middleware(['auth', 'verified', 'pin'])->group(function () {
 });
 
 // ---------- Pengguna penuh: login, email, dan PIN ----------
-Route::middleware(['auth', 'verified', 'pin','password.baru'])->group(function () {
+    Route::middleware(['auth', 'verified', 'pin','password.baru'])->group(function () {
+    Route::get('/barang-saya/{barang}/label', [DonaturBarangController::class, 'label']);
+
     // Donatur
     Route::get('/berbagi', [DonaturBarangController::class, 'create']);
     Route::post('/berbagi', [DonaturBarangController::class, 'store']);
@@ -84,12 +92,14 @@ Route::middleware(['auth', 'verified', 'pin','password.baru'])->group(function (
     Route::post('/barang-saya/{barang}/tarik', [DonaturBarangController::class, 'tarik']);
     Route::get('/barang-saya/{barang}/ubah', [DonaturBarangController::class, 'edit']);
     Route::post('/barang-saya/{barang}/ubah', [DonaturBarangController::class, 'update']);
+    Route::get('/bukti/{tugas}/{jenis}', [PetugasController::class, 'bukti']);
 
     // Penerima
     Route::get('/status-penerima', [PenerimaController::class, 'status']);
     Route::post('/barang/{barang}/ajukan', [PermintaanController::class, 'store']);
     Route::get('/permintaan-saya', [PermintaanController::class, 'saya']);
     Route::post('/permintaan-saya/{permintaan}/batal', [PermintaanController::class, 'batal']);
+    Route::post('/status-penerima/ajukan-ulang', [PenerimaController::class, 'ajukanUlang'])->middleware('throttle:5,1,ajukan-ulang');
 
     // Pengaturan (semua peran)
     Route::get('/pengaturan', [PengaturanController::class, 'index']);
@@ -100,6 +110,20 @@ Route::middleware(['auth', 'verified', 'pin','password.baru'])->group(function (
     Route::post('/pengaturan/foto/hapus', [PengaturanController::class, 'hapusFoto']);
     Route::post('/pengaturan/hapus-akun', [PengaturanController::class, 'hapusAkun'])->middleware('throttle:5,1,hapus-akun');
 
+    // Petugas
+    Route::middleware(['auth', 'verified', 'pin', 'password.baru', 'petugas'])->prefix('petugas')->group(function () {
+    Route::get('/', [PetugasController::class, 'dashboard']);
+
+    Route::get('/pengambilan', [PetugasController::class, 'pengambilan']);
+    Route::post('/tugas/{tugas}/ambil', [PetugasController::class, 'ambil'])->middleware('throttle:10,1,tugas-ambil');
+    Route::post('/tugas/{tugas}/lepas', [PetugasController::class, 'lepas']);
+    Route::post('/pengambilan/diambil', [PetugasController::class, 'diambil'])->middleware('throttle:10,1,diambil');
+
+    Route::get('/pengiriman', [PetugasController::class, 'pengiriman']);
+    Route::post('/tugas/{tugas}/selesai', [PetugasController::class, 'selesai'])->middleware('throttle:5,1,kode-serah');
+
+    Route::get('/riwayat', [PetugasController::class, 'riwayat']);
+});
 });
 
 // ---------- Admin ----------
@@ -125,4 +149,11 @@ Route::middleware(['auth', 'verified', 'pin', 'password.baru', 'admin'])->prefix
     Route::post('/permintaan/{permintaan}/tolak', [AdminPermintaanController::class, 'tolak']);
 
     Route::get('/log', [AdminLogController::class, 'index']);
+
+    Route::get('/kebutuhan', [AdminKebutuhanController::class, 'index']);
+
+    Route::post('/kebutuhan', [AdminKebutuhanController::class, 'store']);
+    Route::post('/kebutuhan/{kebutuhan}/ubah', [AdminKebutuhanController::class, 'update']);
+    Route::post('/kebutuhan/{kebutuhan}/status', [AdminKebutuhanController::class, 'status']);
+    Route::post('/kebutuhan/{kebutuhan}/hapus', [AdminKebutuhanController::class, 'hapus']);
 });

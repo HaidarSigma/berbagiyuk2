@@ -7,6 +7,7 @@ use App\Models\LogAktivitas;
 use App\Models\Permintaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\Tugas;
 
 class AdminPermintaanController extends Controller
 {
@@ -30,6 +31,11 @@ class AdminPermintaanController extends Controller
 
             $p->update(['status' => 'disetujui', 'alasan_tolak' => null]);
             $barang->update(['status' => 'diproses']);
+
+            Tugas::create([
+            'permintaan_id' => $p->id,
+            'kode_serah'    => str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT),
+     ]);
 
             Permintaan::where('barang_id', $barang->id)
                 ->where('status', 'menunggu')->where('id', '!=', $p->id)

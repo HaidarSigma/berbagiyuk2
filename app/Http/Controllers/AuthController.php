@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Support\Wilayah;
 
 class AuthController extends Controller
 {
@@ -21,8 +22,7 @@ class AuthController extends Controller
             'role'           => 'required|in:donatur,penerima',
             'no_hp'          => 'required|string|max:20',
             'alamat'         => 'required|string',
-            'latitude'       => 'required|numeric',
-            'longitude'      => 'required|numeric',
+            ...Wilayah::aturan(),
             'jenis_penerima' => 'required_if:role,penerima|nullable|in:keluarga_kurang_mampu,panti_yayasan,korban_bencana,pelajar',
             'dokumen'        => 'required_if:role,penerima|nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
@@ -59,7 +59,13 @@ public function masuk(Request $r)
         $r->session()->regenerate();
         $r->session()->forget('pin_ok');
         \App\Models\LogAktivitas::catat('login');
-        return redirect()->intended('/pin/masuk');
+
+        $user = Auth::user();
+        if (! $user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
+        }
+
+        return redirect($user->pin ? '/pin/masuk' : '/pin/buat');
     }
 
     \App\Models\LogAktivitas::catat('login_gagal', 'Email: '.$r->email);

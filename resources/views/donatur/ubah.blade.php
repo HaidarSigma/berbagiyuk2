@@ -53,7 +53,7 @@
 
     <div>
       <label class="text-sm text-gray-600">Area (tampil di publik)</label>
-      <input name="lokasi" value="{{ old('lokasi', $barang->lokasi) }}" placeholder="Contoh: Laweyan, Surakarta" class="w-full border rounded-lg px-3 py-2 mt-1" required>
+      <input name="lokasi" value="{{ old('lokasi', $barang->lokasi) }}" placeholder="Contoh: {{ config('wilayah.contoh') }}" class="w-full border rounded-lg px-3 py-2 mt-1" required>
     </div>
 
     <div>
@@ -77,16 +77,6 @@
     <button class="w-full bg-green-800 text-white rounded-lg py-2 font-semibold">Simpan &amp; Ajukan Ulang</button>
   </form>
 
-  <script>
-    const awal = [{{ $barang->latitude ?? -7.5755 }}, {{ $barang->longitude ?? 110.8243 }}];
-    const map = L.map('map').setView(awal, 14);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OpenStreetMap'}).addTo(map);
-    let marker = @if ($barang->latitude) L.marker(awal).addTo(map) @else null @endif;
-    map.on('click', e => {
-      marker ? marker.setLatLng(e.latlng) : marker = L.marker(e.latlng).addTo(map);
-      lat.value = e.latlng.lat.toFixed(7);
-      lng.value = e.latlng.lng.toFixed(7);
-    });
-  </script>
+  @include('partials.peta-pilih', ['lat0' => old('latitude', $barang->latitude), 'lng0' => old('longitude', $barang->longitude)])
 </body>
 </html>

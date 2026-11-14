@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Barang extends Model
 {
@@ -16,7 +17,9 @@ class Barang extends Model
         'pelajar'               => 'Pelajar',
     ];
 
-    protected $fillable = ['user_id', 'kategori_id', 'judul', 'deskripsi', 'kondisi', 'syarat_penerima', 'lokasi', 'latitude', 'longitude', 'foto', 'status', 'verifikasi', 'alasan_tolak'];
+    protected $fillable = ['user_id', 'kategori_id', 'judul', 'deskripsi', 'kondisi', 'syarat_penerima', 'lokasi', 'latitude', 'longitude', 'foto', 'status', 'verifikasi', 'alasan_tolak', 'donasi_id'];
+
+    public function donasi() { return $this->belongsTo(Donasi::class); }
 
     protected $casts = ['syarat_penerima' => 'array'];
 
@@ -38,4 +41,10 @@ class Barang extends Model
         if (! in_array($u->jenis_penerima, $this->syarat())) return [false, 'Barang ini diperuntukkan bagi penerima dengan jenis lain.'];
         return [true, null];
     }
+    protected static function booted(): void
+{
+    static::creating(function (Barang $b) {
+        $b->token ??= 'BY-'.Str::upper(Str::random(24));
+    });
+}
 }

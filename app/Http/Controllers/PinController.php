@@ -5,11 +5,40 @@ namespace App\Http\Controllers;
 use App\Models\LogAktivitas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class PinController extends Controller
 {
     const BATAS_SALAH = 5;
     const MENIT_KUNCI = 15;
+
+    // Menyiapkan notif selamat datang dan mencatat login yang sudah lengkap
+    private function sambut($u, bool $baru = false): void
+    {
+        $jam = now()->hour;
+        $waktu = match (true) {
+            $jam >= 4 && $jam < 11  => 'pagi',
+            $jam >= 11 && $jam < 15 => 'siang',
+            $jam >= 15 && $jam < 18 => 'sore',
+            default                 => 'malam',
+        };
+        $nama = Str::before($u->name, ' ');
+
+        $info = $baru ? 'Akunmu sudah siap dipakai.' : null;
+        if (! $baru) {
+            $sebelumnya = LogAktivitas::where('user_id', $u->id)->where('aksi', 'login_berhasil')->latest('created_at')->first();
+            if ($sebelumnya) {
+                $info = 'Terakhir masuk: '.$sebelumnya->created_at->locale('id')->translatedFormat('d M Y, H:i');
+            }
+        }
+
+        LogAktivitas::catat('login_berhasil', null, $u->id);
+
+        session()->put('selamat', [
+            'judul' => $baru ? "Selamat datang di BerbagiYuk, {$nama}!" : "Selamat {$waktu}, {$nama}!",
+            'info'  => $info,
+        ]);
+    }
 
     public function formBuat()
     {
@@ -21,6 +50,7 @@ class PinController extends Controller
         $r->validate(['pin' => 'required|digits:6|confirmed']);
         $r->user()->forceFill(['pin' => Hash::make($r->pin)])->save();
         $r->session()->put('pin_ok', true);
+        $this->sambut($r->user(), true);
 
         return redirect('/');
     }
@@ -53,6 +83,7 @@ class PinController extends Controller
         if (Hash::check($r->pin, $u->pin)) {
             $u->forceFill(['pin_percobaan' => 0, 'pin_terkunci_sampai' => null])->save();
             $r->session()->put('pin_ok', true);
+            $this->sambut($u);
 
             return redirect('/');
         }

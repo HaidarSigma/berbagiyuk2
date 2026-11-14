@@ -43,8 +43,7 @@
       @if (! auth()->check() || auth()->user()->role === 'donatur')
       <a href="/berbagi" class="py-1 border-b-2 border-transparent hover:text-green-800">Berbagi Barang</a>
       @endif
-      <a href="#" class="py-1 border-b-2 border-transparent hover:text-green-800">Komunitas</a>
-      <a href="#" class="py-1 border-b-2 border-transparent hover:text-green-800">Tentang Kami</a>
+      <a href="/tentang" class="py-1 border-b-2 border-transparent hover:text-green-800">Tentang Kami</a>
     </div>
 
     <form action="/cari" method="GET" class="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-2 w-56 text-sm">
@@ -126,7 +125,6 @@
                 <span class="text-5xl group-hover:scale-110 transition">{{ $ikon[$b->kategori_id - 1] ?? '📦' }}</span>
               @endif
               <span class="absolute bottom-2 left-2 bg-green-700 text-white text-[11px] font-semibold px-2 py-0.5 rounded-md">Tersedia</span>
-              <span class="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 transition">♥</span>
             </div>
             <div class="p-3">
               <div class="text-sm font-bold leading-snug">{{ $b->judul }}</div>
@@ -146,7 +144,7 @@
       <div class="bg-green-50 rounded-2xl p-4">
         <div class="flex justify-between items-center mb-3">
           <h2 class="font-extrabold">📦 Kebutuhan Mendesak</h2>
-          <a href="#" class="text-xs text-green-800 font-semibold">Lihat Semua →</a>
+          <a href="/kebutuhan" class="text-xs text-green-800 font-semibold">Lihat Semua →</a>
         </div>
         <div class="space-y-2">
           @foreach ($mendesak as $m)
@@ -171,10 +169,9 @@
         @endif
       </div>
 
-      <div class="bg-white rounded-2xl p-4 grid grid-cols-3 text-center shadow-sm divide-x">
+      <div class="bg-white rounded-2xl p-4 grid-cols-3 menjadi grid-cols-2">
         <div class="px-1"><div class="text-2xl">🎁</div><div class="font-extrabold text-green-800">{{ number_format($stat['barang'], 0, ',', '.') }}</div><div class="text-[11px] text-gray-500">Barang Dibagikan</div></div>
         <div class="px-1"><div class="text-2xl">👥</div><div class="font-extrabold text-green-800">{{ number_format($stat['penerima'], 0, ',', '.') }}</div><div class="text-[11px] text-gray-500">Penerima Manfaat</div></div>
-        <div class="px-1"><div class="text-2xl">🌿</div><div class="font-extrabold text-green-800">{{ number_format($stat['komunitas'], 0, ',', '.') }}</div><div class="text-[11px] text-gray-500">Komunitas Terlibat</div></div>
       </div>
     </aside>
   </div>
@@ -211,16 +208,15 @@
       @if (! auth()->check() || auth()->user()->role === 'donatur')
       <a href="/berbagi" class="block hover:text-white">Berbagi Barang</a>
       @endif
-      <a href="#" class="block hover:text-white">Komunitas</a>
     </div>
     <div class="space-y-1">
       <div class="font-semibold text-white">Tentang</div>
-      <a href="#" class="block hover:text-white">Tentang Kami</a>
-      <a href="#" class="block hover:text-white">Aturan Barang</a>
+      <a href="/tentang" class="block hover:text-white">Tentang Kami</a>
+      <a href="/aturan" class="block hover:text-white">Aturan Barang</a>
     </div>
   </div>
   <div class="border-t border-green-800 text-center text-xs py-3 text-green-300">© {{ date('Y') }} BerbagiYuk. Dibuat dengan ♥ untuk berbagi.</div>
 </footer>
-
+@include('partials.toast')
 </body>
 </html>

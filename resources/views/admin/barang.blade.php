@@ -4,6 +4,10 @@
   <div class="bg-green-50 rounded-2xl p-4 text-sm mb-5">
     <div class="font-semibold mb-1">Aturan barang yang boleh dibagikan</div>
     <ul class="list-disc ml-5 text-gray-600 space-y-0.5">
+  @foreach (config('aturan.umum') as $a)<li>{{ $a }}</li>@endforeach
+  @foreach (config('aturan.dilarang') as $a)<li class="text-red-700">Dilarang: {{ $a }}</li>@endforeach
+</ul>
+<a href="/aturan" target="_blank" class="inline-block mt-2 text-xs font-semibold text-green-800">Lihat halaman Aturan Barang →</a>
       <li>Kondisi layak pakai (tidak rusak parah, tidak kotor atau berbau)</li>
       <li>Gratis, tidak dijual</li>
       <li>Makanan dan minuman belum kedaluwarsa dan kemasan masih tersegel</li>
@@ -22,6 +26,7 @@
 
         <div class="flex-1 space-y-1">
           <div class="font-extrabold">{{ $b->judul }}</div>
+           @if ($b->donasi_id)<span class="text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">Donasi #{{ $b->donasi_id }}</span>@endif
           <div class="text-sm text-gray-500">{{ $b->kategori->nama }} · {{ $b->kondisi }} · 📍 {{ $b->lokasi }}</div>
           <div class="text-xs text-gray-400">oleh {{ $b->user->name }} · {{ $b->created_at->locale('id')->diffForHumans() }}</div>
           @if ($b->deskripsi)<p class="text-sm text-gray-600 pt-1">{{ $b->deskripsi }}</p>@endif

@@ -20,16 +20,18 @@
 
   <div class="flex items-center gap-4">
     @if ($u->foto_profil)
-      <img src="{{ asset('storage/'.$u->foto_profil) }}" class="w-20 h-20 rounded-full object-cover border" alt="">
+      <button type="button" class="rounded-full focus:outline-none focus:ring-2 focus:ring-green-700 focus:ring-offset-2" aria-label="Perbesar foto profil" onclick="document.getElementById('fotoProfilBesar').showModal()">
+        <img src="{{ asset('storage/'.$u->foto_profil) }}" class="w-20 h-20 rounded-full object-cover border" alt="Foto profil">
+      </button>
     @else
       <div class="w-20 h-20 rounded-full bg-green-800 text-white flex items-center justify-center text-3xl font-bold">{{ strtoupper(substr($u->name, 0, 1)) }}</div>
     @endif
 
-    <form method="POST" action="/pengaturan/foto" enctype="multipart/form-data" class="flex-1 space-y-2">
+    <form id="formUnggahFoto" method="POST" action="/pengaturan/foto" enctype="multipart/form-data" class="min-w-0 flex-1 space-y-2">
       @csrf
-      <input type="file" name="foto" accept="image/png,image/jpeg,image/webp" class="text-sm w-full" required>
+      <input type="file" name="foto" accept="image/png,image/jpeg,image/webp" class="inline-block max-w-full text-sm" required>
       <p class="text-xs text-gray-500">JPG, PNG, atau WEBP, maksimal 2 MB. Foto berbentuk persegi hasilnya paling rapi.</p>
-      <button class="bg-green-800 text-white rounded-lg px-5 py-2 text-sm font-semibold hover:bg-green-900">Unggah Foto</button>
+      <button type="submit" name="submit_foto" value="1" class="bg-green-800 text-white rounded-lg px-5 py-2 text-sm font-semibold hover:bg-green-900">Unggah Foto</button>
     </form>
   </div>
 
@@ -37,6 +39,12 @@
     <form method="POST" action="/pengaturan/foto/hapus" onsubmit="return confirm('Hapus foto profil?')">@csrf
       <button class="text-sm text-red-600">Hapus foto</button>
     </form>
+    <dialog id="fotoProfilBesar" class="m-auto max-h-[90vh] max-w-[90vw] rounded-2xl bg-transparent p-0 backdrop:bg-black/75" aria-label="Foto profil ukuran besar" onclick="if (event.target === this) this.close()">
+      <div class="relative">
+        <button type="button" class="absolute right-2 top-2 rounded-full bg-black/60 px-3 py-1 text-xl text-white" aria-label="Tutup foto" onclick="document.getElementById('fotoProfilBesar').close()">×</button>
+        <img src="{{ asset('storage/'.$u->foto_profil) }}" class="max-h-[85vh] max-w-[90vw] rounded-2xl object-contain" alt="Foto profil ukuran besar">
+      </div>
+    </dialog>
   @endif
 </div>
 
@@ -133,16 +141,6 @@
   @if ($punyaLokasi)
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-      const awal = [{{ $u->latitude ?? -7.5755 }}, {{ $u->longitude ?? 110.8243 }}];
-      const map = L.map('map').setView(awal, 14);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OpenStreetMap'}).addTo(map);
-      let marker = @if ($u->latitude) L.marker(awal).addTo(map) @else null @endif;
-      map.on('click', e => {
-        marker ? marker.setLatLng(e.latlng) : marker = L.marker(e.latlng).addTo(map);
-        lat.value = e.latlng.lat.toFixed(7);
-        lng.value = e.latlng.lng.toFixed(7);
-      });
-    </script>
+    @include('partials.peta-pilih', ['lat0' => old('latitude', $u->latitude), 'lng0' => old('longitude', $u->longitude)])
   @endif
 @endsection

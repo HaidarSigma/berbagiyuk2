@@ -15,6 +15,7 @@
       </div>
     </div>
 
+
     @if (session('status'))
       <div class="bg-green-50 text-green-800 text-sm rounded-lg p-3">{{ session('status') }}</div>
     @endif
@@ -35,6 +36,7 @@
         <div class="flex-1">
           <div class="flex justify-between items-start gap-2">
             <div class="font-semibold">{{ $b->judul }}</div>
+             @if ($b->donasi_id)<span class="text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">Donasi #{{ $b->donasi_id }}</span>@endif
             @if ($b->status === 'ditarik')
               <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Ditarik</span>
             @else
@@ -42,11 +44,19 @@
             @endif
           </div>
           <div class="text-sm text-gray-500">{{ $b->kategori->nama }} · {{ $b->kondisi }} · 📍 {{ $b->lokasi }}</div>
+          <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1">
+          ID:
+          <code class="bg-gray-100 rounded px-1.5 py-0.5 select-all break-all">{{ $b->token }}</code>
+      <button type="button" onclick="navigator.clipboard.writeText('{{ $b->token }}'); this.textContent='✔ Tersalin'" class="text-green-800 font-semibold">Salin</button>
+</div>
           @if ($b->verifikasi === 'ditolak' && $b->alasan_tolak)
             <p class="text-sm text-red-600 mt-1">Alasan: {{ $b->alasan_tolak }}</p>
           @endif
 
           <div class="mt-2 flex gap-4 text-sm">
+            @if ($b->verifikasi === 'disetujui' && in_array($b->status, ['tersedia', 'diproses']))
+            <a href="/barang-saya/{{ $b->id }}/label" target="_blank" class="text-green-800 font-semibold">🏷️ Label QR</a>
+            @endif
             @if ($b->status !== 'ditarik' && in_array($b->verifikasi, ['menunggu', 'ditolak']))
               <a href="/barang-saya/{{ $b->id }}/ubah" class="text-green-800 font-semibold">
                 {{ $b->verifikasi === 'ditolak' ? '✏️ Perbaiki & ajukan ulang' : '✏️ Ubah' }}

@@ -39,8 +39,7 @@
       @if (! auth()->check() || auth()->user()->role === 'donatur')
         <a href="/berbagi" class="{{ $biasa }}">Berbagi Barang</a>
       @endif
-      <a href="#" class="{{ $biasa }}">Komunitas</a>
-      <a href="#" class="{{ $biasa }}">Tentang Kami</a>
+      <a href="/tentang" class="{{ request()->is('tentang') ? $aktif : $biasa }}">Tentang Kami</a>
     </div>
 
     <form action="/cari" method="GET" class="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-2 w-56 text-sm">
@@ -57,10 +56,13 @@
 </main>
 
 <footer class="mt-10 bg-green-900 text-green-100">
-  <div class="max-w-6xl mx-auto px-4 py-6 text-center text-xs text-green-300">
-    © {{ date('Y') }} BerbagiYuk. Dibuat dengan ♥ untuk berbagi.
-  </div>
+  <div class="flex flex-wrap justify-center gap-x-5 gap-y-1 mb-2">
+  <a href="/tentang" class="hover:text-white">Tentang Kami</a>
+  <a href="/aturan" class="hover:text-white">Aturan Barang</a>
+  <a href="/kebutuhan" class="hover:text-white">Kebutuhan Mendesak</a>
+</div>
+© {{ date('Y') }} BerbagiYuk. Dibuat dengan ♥ untuk berbagi.
 </footer>
-
+@include('partials.toast')
 </body>
 </html>

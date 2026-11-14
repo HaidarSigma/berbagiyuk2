@@ -15,17 +15,23 @@
       <div class="text-sm text-red-600">@foreach ($errors->all() as $e)<p>{{ $e }}</p>@endforeach</div>
     @endif
 
-    <div class="flex gap-4 text-sm">
-      <label><input type="radio" name="role" value="donatur" {{ old('role', 'donatur') == 'donatur' ? 'checked' : '' }}> Donatur (berbagi barang)</label>
-      <label><input type="radio" name="role" value="penerima" {{ old('role') == 'penerima' ? 'checked' : '' }}> Penerima</label>
+    <div class="flex items-center gap-4 text-sm leading-none">
+      <label class="inline-flex items-center gap-1.5"><input type="radio" name="role" value="donatur" class="relative -top-px m-0 shrink-0" {{ old('role', 'donatur') == 'donatur' ? 'checked' : '' }}> Donatur</label>
+      <label class="inline-flex items-center gap-1.5"><input type="radio" name="role" value="penerima" class="relative -top-px m-0 shrink-0" {{ old('role') == 'penerima' ? 'checked' : '' }}> Penerima</label>
     </div>
 
     <input name="name" value="{{ old('name') }}" placeholder="Nama lengkap" class="w-full border rounded-lg px-3 py-2" required>
     <input type="email" name="email" value="{{ old('email') }}" placeholder="Email" class="w-full border rounded-lg px-3 py-2" required>
     <input name="no_hp" value="{{ old('no_hp') }}" placeholder="No. HP" class="w-full border rounded-lg px-3 py-2" required>
-    <input type="password" name="password" placeholder="Password (min. 12 karakter)" class="w-full border rounded-lg px-3 py-2" required>
+    <div class="relative">
+      <input id="password" type="password" name="password" placeholder="Password (min. 12 karakter)" class="w-full border rounded-lg px-3 py-2 pr-20" required>
+      <button type="button" data-password-toggle="password" aria-controls="password" aria-pressed="false" class="absolute inset-y-0 right-3 text-sm text-green-800">Lihat</button>
+    </div>
     @include('partials.syarat-password')
-    <input type="password" name="password_confirmation" placeholder="Ulangi password" class="w-full border rounded-lg px-3 py-2" required>
+    <div class="relative">
+      <input id="password_confirmation" type="password" name="password_confirmation" placeholder="Ulangi password" class="w-full border rounded-lg px-3 py-2 pr-20" required>
+      <button type="button" data-password-toggle="password_confirmation" aria-controls="password_confirmation" aria-pressed="false" class="absolute inset-y-0 right-3 text-sm text-green-800">Lihat</button>
+    </div>
 
     {{-- Khusus penerima --}}
     <div id="boxPenerima" class="hidden space-y-3 bg-green-50 rounded-xl p-4">
@@ -56,19 +62,11 @@
   </form>
 
   <script>
-    const box = document.getElementById('boxPenerima');
-    const cek = () => box.classList.toggle('hidden', document.querySelector('input[name=role]:checked').value !== 'penerima');
-    document.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', cek));
-    cek();
-
-    const map = L.map('map').setView([-7.5755, 110.8243], 13);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OpenStreetMap'}).addTo(map);
-    let marker;
-    map.on('click', e => {
-      marker ? marker.setLatLng(e.latlng) : marker = L.marker(e.latlng).addTo(map);
-      lat.value = e.latlng.lat.toFixed(7);
-      lng.value = e.latlng.lng.toFixed(7);
-    });
-  </script>
+  const box = document.getElementById('boxPenerima');
+  const cek = () => box.classList.toggle('hidden', document.querySelector('input[name=role]:checked').value !== 'penerima');
+  document.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', cek));
+  cek();
+</script>
+@include('partials.peta-pilih', ['lat0' => old('latitude'), 'lng0' => old('longitude')])
 </body>
 </html>

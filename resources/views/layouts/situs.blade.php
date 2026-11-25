@@ -6,7 +6,7 @@
   <title>@yield('judul', 'BerbagiYuk')</title>
   @include('partials.head-asset')
 </head>
-<body class="site-publik bg-gray-50 text-gray-800 font-sans">
+<body class="site-publik flex min-h-screen flex-col bg-gray-50 text-gray-800 font-sans">
 
 @php
   $aktif = 'py-1 border-b-2 border-green-800 text-green-800 font-semibold';
@@ -42,7 +42,7 @@
   </div>
 </nav>
 
-<main class="max-w-6xl mx-auto px-4 py-6">
+<main class="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
   @yield('isi')
 </main>
 

@@ -7,23 +7,30 @@
   </div>
 
   @if ($tab === 'pengambilan')
-    @forelse ($tugas as $tanggal => $daftar)
+    @php
+      $stat = [
+        'tersedia' => ['Di posko', 'bg-yellow-100 text-yellow-800'],
+        'diproses' => ['Menunggu diantar', 'bg-blue-100 text-blue-800'],
+        'selesai'  => ['Sudah terkirim', 'bg-green-100 text-green-800'],
+      ];
+    @endphp
+    @forelse ($data as $tanggal => $daftar)
       <div class="mb-5">
         <div class="flex justify-between items-baseline mb-2">
           <h2 class="font-extrabold">{{ \Illuminate\Support\Carbon::parse($tanggal)->locale('id')->translatedFormat('l, d F Y') }}</h2>
           <span class="text-xs text-gray-500">{{ $daftar->count() }} barang</span>
         </div>
         <div class="space-y-2">
-          @foreach ($daftar as $t)
-            @php $b = $t->permintaan->barang; @endphp
+          @foreach ($daftar as $p)
+            @php $b = $p->barang; $s = $stat[$b->status] ?? ['-', 'bg-gray-100 text-gray-600']; @endphp
             <div class="bg-white rounded-xl shadow-sm p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm">
               <div>
                 <div class="font-semibold">{{ $b->judul }}</div>
-                <div class="text-xs text-gray-500">{{ $b->kategori->nama }} · dari {{ $b->user->name }} ({{ $b->lokasi }}) · pukul {{ $t->diambil_at->format('H:i') }}</div>
+                <div class="text-xs text-gray-500">{{ $b->kategori->nama }} · dari {{ $b->user->name }} ({{ $b->lokasi }}) · pukul {{ $p->diambil_at->format('H:i') }}</div>
               </div>
               <div class="flex items-center gap-3">
-                <span class="text-xs px-2 py-0.5 rounded-full {{ $t->status === 'selesai' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">{{ $t->status === 'selesai' ? 'Sudah terkirim' : 'Menunggu diantar' }}</span>
-                <a target="_blank" href="/bukti/{{ $t->id }}/ambil" class="text-xs font-semibold text-blue-700">📷 Bukti</a>
+                <span class="text-xs px-2 py-0.5 rounded-full {{ $s[1] }}">{{ $s[0] }}</span>
+                <a target="_blank" href="/bukti-pengambilan/{{ $p->id }}" class="text-xs font-semibold text-blue-700">📷 Bukti</a>
               </div>
             </div>
           @endforeach
@@ -34,7 +41,7 @@
     @endforelse
   @else
     <div class="space-y-3">
-      @forelse ($tugas as $t)
+      @forelse ($data as $t)
         @php $b = $t->permintaan->barang; @endphp
         <div class="bg-white rounded-2xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
@@ -42,15 +49,12 @@
             <div class="text-xs text-gray-500">{{ $b->kategori->nama }} · untuk {{ $t->permintaan->penerima->name }} · selesai {{ $t->selesai_at->locale('id')->translatedFormat('d M Y, H:i') }}</div>
             @if ($t->catatan)<div class="text-xs text-gray-600 mt-1">Catatan: {{ $t->catatan }}</div>@endif
           </div>
-          <div class="flex gap-4 text-sm font-semibold text-blue-700">
-            <a target="_blank" href="/bukti/{{ $t->id }}/ambil">📷 Bukti ambil</a>
-            <a target="_blank" href="/bukti/{{ $t->id }}/serah">📷 Bukti serah</a>
-          </div>
+          <a target="_blank" href="/bukti/{{ $t->id }}/serah" class="text-sm font-semibold text-blue-700">📷 Bukti serah</a>
         </div>
       @empty
         <p class="text-gray-500">Belum ada pengantaran yang selesai.</p>
       @endforelse
     </div>
-    <div class="mt-4">{{ $tugas->links() }}</div>
+    <div class="mt-4">{{ $data->links() }}</div>
   @endif
 @endsection

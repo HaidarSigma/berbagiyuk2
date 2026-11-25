@@ -21,11 +21,20 @@ class Barang extends Model
 
     public function donasi() { return $this->belongsTo(Donasi::class); }
 
-    protected $casts = ['syarat_penerima' => 'array'];
+    protected $casts = [
+        'syarat_penerima' => 'array',
+        'latitude' => 'encrypted',
+        'longitude' => 'encrypted',
+    ];
 
     public function user() { return $this->belongsTo(User::class); }
     public function kategori() { return $this->belongsTo(Kategori::class); }
     public function permintaan() { return $this->hasMany(Permintaan::class); }
+    public function pengambilan() { return $this->hasOne(Pengambilan::class); }
+
+    public function medias() { return $this->hasMany(BarangMedia::class)->orderBy('urutan'); }
+    public function fotos() { return $this->hasMany(BarangMedia::class)->where('jenis', 'foto')->orderBy('urutan'); }
+    public function video() { return $this->hasOne(BarangMedia::class)->where('jenis', 'video'); }
 
     public function syarat(): array
     {

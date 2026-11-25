@@ -29,6 +29,7 @@ protected $hidden = [
     'password',
     'pin',
     'remember_token',
+    'totp_rahasia', 'totp_kode_pulih'
 ];
 
 protected $casts = [
@@ -37,7 +38,10 @@ protected $casts = [
     'pin_terkunci_sampai' => 'datetime',
     'no_hp' => 'encrypted',
     'alamat' => 'encrypted',
+    'latitude' => 'encrypted',
+    'longitude' => 'encrypted',
     'password_changed_at' => 'datetime',
+    'totp_rahasia' => 'encrypted', 'totp_aktif' => 'boolean', 'totp_kode_pulih' => 'array', 'totp_kunci_sampai' => 'datetime',
 ];
 
 public function passwordBerlakuSampai(): \Illuminate\Support\Carbon
@@ -53,8 +57,9 @@ public function passwordKedaluwarsa(): bool
 public function penghalangHapusAkun(): ?string
 {
     if ($this->role === 'donatur'
-        && Barang::where('user_id', $this->id)->where('status', 'diproses')->exists()) {
-        return 'Masih ada barangmu yang sedang diproses untuk penerima. Akun bisa dihapus setelah proses selesai.';
+        && Barang::where('user_id', $this->id)->where('verifikasi', 'disetujui')
+            ->whereIn('status', ['menunggu_ambil', 'tersedia', 'diproses'])->exists()) {
+        return 'Masih ada barangmu yang menunggu diambil, tersimpan di posko, atau sedang diantar. Akun bisa dihapus setelah semuanya selesai atau barang ditarik (hanya sebelum diambil).';
     }
 
     if ($this->role === 'penerima'
@@ -64,5 +69,16 @@ public function penghalangHapusAkun(): ?string
     }
 
     return null;
+}
+
+// Mengakhiri semua sesi lain: sesi dengan nomor versi lama ditolak oleh EnsurePin
+public function putusSesi(bool $pertahankanSesiIni = false): void
+{
+    $this->forceFill(['sesi_versi' => (int) $this->sesi_versi + 1])->save();
+
+    if ($pertahankanSesiIni) {
+        session(['sesi_versi' => (int) $this->sesi_versi]);
+        session()->regenerate();
+    }
 }
 }

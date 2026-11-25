@@ -4,33 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BerbagiYuk</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'], hand: ['Caveat', 'cursive'] } } } }
-  </script>
-  <style>
-    body {
-      background-color: #f0f7f2 !important;
-      background-image:
-        radial-gradient(ellipse at 8% 12%, rgba(134, 239, 172, 0.42), transparent 42%),
-        radial-gradient(ellipse at 92% 78%, rgba(167, 243, 208, 0.48), transparent 40%) !important;
-      background-attachment: fixed !important;
-    }
-  </style>
+  @include('partials.head-asset')
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans">
+<body class="site-publik bg-gray-50 text-gray-800 font-sans">
 
 @php
   $ikon  = ['👕','📚','🪑','🏠','🎒','💻','🍽️','⋯'];
   $warna = ['bg-green-100','bg-blue-100','bg-orange-100','bg-purple-100','bg-rose-100','bg-cyan-100','bg-red-100','bg-gray-100'];
   $adaFoto = file_exists(public_path('img/hero.jpg'));
+  $urlBeranda = auth()->check() && in_array(auth()->user()->role, ['admin', 'petugas'], true) ? '/?lihat=1' : '/';
 @endphp
 
 {{-- Navbar --}}
 <nav class="bg-white/90 backdrop-blur sticky top-0 z-30 border-b border-gray-100">
   <div class="max-w-6xl mx-auto flex items-center justify-between gap-4 px-4 py-3">
-    <a href="/">
+    <a href="{{ $urlBeranda }}">
       <span>
         <span class="block text-xl font-extrabold text-green-800 leading-none">BerbagiYuk</span>
         <span class="block text-[11px] text-gray-500">Berbagi Sedikit, Berarti Banyak.</span>
@@ -38,17 +26,18 @@
     </a>
 
       <div class="hidden lg:flex items-center gap-6 text-sm font-medium whitespace-nowrap">
-      <a href="/" class="py-1 border-b-2 border-green-800 text-green-800 font-semibold">Beranda</a>
+      <a href="{{ $urlBeranda }}" class="py-1 border-b-2 border-green-800 text-green-800 font-semibold">Beranda</a>
       <a href="/cari" class="py-1 border-b-2 border-transparent hover:text-green-800">Cari Barang</a>
       @if (! auth()->check() || auth()->user()->role === 'donatur')
       <a href="/berbagi" class="py-1 border-b-2 border-transparent hover:text-green-800">Berbagi Barang</a>
       @endif
+      <a href="/berita" class="py-1 border-b-2 border-transparent hover:text-green-800">Berita</a>
       <a href="/tentang" class="py-1 border-b-2 border-transparent hover:text-green-800">Tentang Kami</a>
     </div>
 
     <form action="/cari" method="GET" class="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-2 w-56 text-sm">
       <span class="text-gray-400 mr-2">🔍</span>
-      <input type="text" name="q" placeholder="Cari barang, kategori..." class="bg-transparent outline-none w-full">
+      <input type="text" name="q" placeholder="Cari barang, kategori..." data-placeholder-asli="Cari barang, kategori..." data-placeholder-animasi="Cari pakaian...|Cari buku...|Cari perlengkapan rumah..." class="bg-transparent outline-none focus-visible:outline-none w-full">
     </form>
 
     @include('partials.menu-profil')
@@ -58,44 +47,184 @@
 
 <main class="max-w-6xl mx-auto px-4 py-6 space-y-8">
 
-  {{-- Hero --}}
-  <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-green-100 via-green-50 to-white">
-    @if ($adaFoto)
-      <img src="{{ asset('img/hero.jpg') }}" alt="" class="absolute inset-y-0 right-0 w-full md:w-3/5 h-full object-cover">
-      <div class="absolute inset-0 bg-gradient-to-r from-green-50 via-green-50/80 to-transparent"></div>
-    @else
-      <div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-green-200/60"></div>
-      <div class="absolute right-28 -bottom-24 w-64 h-64 rounded-full bg-green-300/40"></div>
-      <div class="hidden md:flex absolute right-12 top-10 gap-4 text-6xl">
-        <span class="bg-white rounded-2xl shadow-lg p-5 -rotate-6">👕</span>
-        <span class="bg-white rounded-2xl shadow-lg p-5 mt-8">📦</span>
-        <span class="bg-white rounded-2xl shadow-lg p-5 rotate-6">📚</span>
-      </div>
-    @endif
+{{-- Hero + Berita --}}
+@php
+  $dataBerita = $berita->map(fn ($b) => [
+      'id'        => $b->id,
+      'judul'     => $b->judul,
+      'tanggal'   => $b->tanggal->locale('id')->translatedFormat('l, d F Y'),
+      'ringkasan' => $b->ringkasan,
+      'isi'       => $b->isi,
+      'foto'      => $b->foto ? asset('storage/'.$b->foto) : null,
+  ])->values();
 
-    <div class="relative p-8 md:p-14 max-w-xl">
-      <span class="inline-block bg-white text-green-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">🌱 Berbagi barang, tanpa biaya</span>
-      <h1 class="mt-4 text-4xl md:text-5xl font-extrabold leading-tight text-gray-900">
-        Barang tak terpakai,<br><span class="text-green-700">manfaat bagi sesama.</span>
-      </h1>
-      <p class="mt-4 text-gray-600">Temukan barang gratis atau bagikan barang layak pakai kepada orang yang membutuhkan.</p>
-      <div class="mt-6 flex flex-wrap gap-3">
-        @if (! auth()->check() || auth()->user()->role === 'donatur')
+  // Slide: foto hero dulu, lalu gambar berita (idx = urutan berita untuk popup)
+  $slides = collect();
+  if ($hero) { $slides->push(['idx' => null, 'foto' => $hero]); }
+  foreach ($berita as $k => $b) {
+      if ($b->foto) { $slides->push(['idx' => $k, 'foto' => asset('storage/'.$b->foto), 'judul' => $b->judul]); }
+  }
+@endphp
+
+<section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-100 via-sky-50 to-amber-50">
+
+  @if ($slides->isNotEmpty())
+    <div class="absolute inset-y-0 right-0 w-full md:w-[58%]">
+      {{-- Gambar: memudar ke kiri supaya teks tetap terbaca --}}
+      <div class="absolute inset-0 opacity-30 md:opacity-100"
+           style="-webkit-mask-image: linear-gradient(to right, transparent 0%, #000 38%); mask-image: linear-gradient(to right, transparent 0%, #000 38%);">
+        @foreach ($slides as $n => $sl)
+          <div class="hero-slide absolute inset-0 transition-opacity duration-700 {{ $n === 0 ? 'opacity-100' : 'opacity-0 pointer-events-none' }} {{ $sl['idx'] !== null ? 'cursor-pointer' : '' }}"
+               @if ($sl['idx'] !== null) data-berita="{{ $sl['idx'] }}" role="button" tabindex="0" aria-label="Baca berita: {{ $sl['judul'] }}" @endif>
+            <img src="{{ $sl['foto'] }}" alt="" @if ($n > 0) loading="lazy" @endif
+                 class="w-full h-full object-cover" style="object-position: 50% 30%;">
+          </div>
+        @endforeach
+      </div>
+
+      {{-- Chip judul berita (hanya tampil di slide berita) --}}
+      <button id="hero-chip" type="button" class="hidden absolute top-4 right-4 z-20 max-w-[85%] bg-white/90 hover:bg-white shadow rounded-full px-4 py-2 text-xs font-semibold text-green-800 truncate">
+        📰 <span id="hero-chip-teks"></span> →
+      </button>
+
+      @if ($slides->count() > 1)
+        <div class="absolute bottom-4 right-4 z-20 flex items-center gap-2 bg-white/80 backdrop-blur rounded-full px-2 py-1 shadow">
+          <button id="hero-prev" type="button" aria-label="Sebelumnya" class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full hover:bg-white">
+            <svg aria-hidden="true" viewBox="0 0 24 24" class="block h-3 w-3" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div id="hero-dots" class="flex h-6 items-center gap-1.5">
+            @foreach ($slides as $n => $sl)
+              <button type="button" aria-label="Gambar {{ $n + 1 }}" class="block h-2 w-2 shrink-0 rounded-full {{ $n === 0 ? 'bg-green-700' : 'bg-gray-300' }}"></button>
+            @endforeach
+          </div>
+          <button id="hero-next" type="button" aria-label="Berikutnya" class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full hover:bg-white">
+            <svg aria-hidden="true" viewBox="0 0 24 24" class="block h-3 w-3" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+      @endif
+    </div>
+  @else
+    {{-- Hiasan bawaan bila tidak ada gambar sama sekali --}}
+    <div class="absolute -top-10 -right-16 w-72 h-72 rounded-full bg-green-200/60"></div>
+    <div class="absolute -bottom-24 right-32 w-64 h-64 rounded-full bg-green-200/60"></div>
+    <div class="hidden md:flex absolute top-10 right-10 items-start gap-3">
+      <div class="w-28 h-28 bg-white rounded-2xl shadow-lg flex items-center justify-center text-5xl -rotate-6">👕</div>
+      <div class="w-28 h-28 bg-white rounded-2xl shadow-lg flex items-center justify-center text-5xl mt-5">📦</div>
+      <div class="w-28 h-28 bg-white rounded-2xl shadow-lg flex items-center justify-center text-5xl rotate-6">📚</div>
+    </div>
+    <div class="hidden md:block absolute bottom-10 right-12 text-right text-2xl text-green-800 -rotate-6" style="font-family: 'Segoe Script', 'Comic Sans MS', cursive;">
+      Sedikit berbagi,<br>banyak kebahagiaan ♥
+    </div>
+  @endif
+
+  {{-- Teks hero: tetap diam --}}
+  <div class="relative z-10 px-6 py-12 md:px-14 md:py-20 md:max-w-[52%] space-y-5">
+    <span class="inline-block bg-white text-green-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">🌱 Berbagi barang, tanpa biaya</span>
+    <h1 class="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900">Barang tak terpakai, <span class="text-green-700">manfaat bagi sesama.</span></h1>
+    <p class="text-gray-600 max-w-md">Temukan barang gratis atau bagikan barang layak pakai kepada orang yang membutuhkan.</p>
+
+    <div class="flex flex-wrap gap-3 pt-1">
+      @if (! auth()->check() || auth()->user()->role === 'donatur')
         <a href="/berbagi" class="bg-green-800 text-white px-6 py-3 rounded-xl font-semibold shadow hover:bg-green-900 transition">+ Bagikan Barang</a>
-        @endif
-        <a href="/cari" class="bg-white/70 border-2 border-green-800 text-green-800 px-6 py-3 rounded-xl font-semibold hover:bg-white transition">🔍 Cari Barang</a>
-      </div>
-      <div class="mt-6 flex flex-wrap gap-x-5 gap-y-1 text-xs text-gray-600">
-        <span>✔ Barang diperiksa admin</span>
-        <span>✔ Penjemputan dibantu petugas</span>
-        <span>✔ 100% gratis</span>
-      </div>
+      @endif
+      <a href="/cari" class="bg-white/80 border-2 border-green-800 text-green-800 px-6 py-3 rounded-xl font-semibold hover:bg-white transition">🔍 Cari Barang</a>
     </div>
 
-    <p class="hidden md:block absolute right-10 bottom-8 font-hand text-3xl -rotate-6 text-right leading-tight {{ $adaFoto ? 'text-white drop-shadow' : 'text-green-800' }}">
-      Sedikit berbagi,<br>banyak kebahagiaan ♥
-    </p>
-  </section>
+    <div class="flex flex-wrap gap-x-5 gap-y-1 text-xs text-gray-600">
+      <span>✔ Barang diperiksa admin</span>
+      <span>✔ Penjemputan dibantu petugas</span>
+      <span>✔ 100% gratis</span>
+    </div>
+  </div>
+</section>
+
+@if ($slides->isNotEmpty())
+  {{-- Jendela berita --}}
+  <div id="modal-berita" class="hidden fixed inset-0 z-50 bg-black/60 items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <button type="button" id="mb-tutup" aria-label="Tutup" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 shadow text-gray-600 z-10">✕</button>
+      <img id="mb-foto" class="hidden w-full max-h-72 object-cover rounded-t-2xl" alt="">
+      <div class="p-6 space-y-3">
+        <div id="mb-tanggal" class="text-xs text-gray-500"></div>
+        <h3 id="mb-judul" class="text-2xl font-extrabold leading-snug"></h3>
+        <p id="mb-ringkasan" class="text-gray-600"></p>
+        <div id="mb-isi" class="text-gray-800 leading-relaxed whitespace-pre-line"></div>
+        <a id="mb-link" href="#" class="inline-block text-sm font-semibold text-green-800">Buka halaman berita →</a>
+      </div>
+    </div>
+  </div>
+
+  <script nonce="{{ $cspNonce ?? '' }}">
+    (() => {
+      const data  = @json($dataBerita);
+      const s     = [...document.querySelectorAll('.hero-slide')];
+      const d     = [...document.querySelectorAll('#hero-dots button')];
+      const chip  = document.getElementById('hero-chip');
+      const modal = document.getElementById('modal-berita');
+      let i = 0, t, chipIdx = null;
+
+      const tampil = n => {
+        i = (n + s.length) % s.length;
+        s.forEach((x, k) => {
+          x.classList.toggle('opacity-100', k === i);
+          x.classList.toggle('opacity-0', k !== i);
+          x.classList.toggle('pointer-events-none', k !== i);
+        });
+        d.forEach((x, k) => { x.classList.toggle('bg-green-700', k === i); x.classList.toggle('bg-gray-300', k !== i); });
+
+        const idx = s[i].dataset.berita;
+        chipIdx = idx === undefined ? null : +idx;
+        if (chipIdx === null) {
+          chip.classList.add('hidden');
+        } else {
+          document.getElementById('hero-chip-teks').textContent = data[chipIdx].judul;
+          chip.classList.remove('hidden');
+        }
+      };
+      const mulai = () => { clearInterval(t); if (s.length > 1) t = setInterval(() => tampil(i + 1), 6000); };
+
+      const buka = k => {
+        const b = data[k];
+        document.getElementById('mb-tanggal').textContent   = b.tanggal;
+        document.getElementById('mb-judul').textContent     = b.judul;
+        document.getElementById('mb-ringkasan').textContent = b.ringkasan;
+        document.getElementById('mb-isi').textContent       = b.isi || '';
+        document.getElementById('mb-link').href             = '/berita/' + b.id;
+
+        const f = document.getElementById('mb-foto');
+        if (b.foto) { f.src = b.foto; f.alt = b.judul; f.classList.remove('hidden'); } else { f.classList.add('hidden'); }
+
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        document.body.classList.add('overflow-hidden');
+        clearInterval(t);   // slider berhenti selama berita dibaca
+      };
+      const tutup = () => {
+        modal.classList.add('hidden'); modal.classList.remove('flex');
+        document.body.classList.remove('overflow-hidden');
+        mulai();
+      };
+
+      s.forEach(x => {
+        if (x.dataset.berita === undefined) return;
+        x.onclick = () => buka(+x.dataset.berita);
+        x.onkeydown = e => { if (e.key === 'Enter') buka(+x.dataset.berita); };
+      });
+      chip.onclick = () => { if (chipIdx !== null) buka(chipIdx); };
+
+      document.getElementById('mb-tutup').onclick = tutup;
+      modal.onclick = e => { if (e.target === modal) tutup(); };
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modal.classList.contains('hidden')) tutup(); });
+
+      if (s.length > 1) {
+        document.getElementById('hero-prev').onclick = () => { tampil(i - 1); mulai(); };
+        document.getElementById('hero-next').onclick = () => { tampil(i + 1); mulai(); };
+        d.forEach((x, k) => x.onclick = () => { tampil(k); mulai(); });
+      }
+      tampil(0);
+      mulai();
+    })();
+  </script>
+@endif
 
   {{-- Kategori --}}
   <section class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
@@ -195,28 +324,8 @@
   </section>
 </main>
 
-{{-- Footer --}}
-<footer class="mt-10 bg-green-900 text-green-100">
-  <div class="max-w-6xl mx-auto px-4 py-8 grid md:grid-cols-3 gap-6 text-sm">
-    <div>
-      <div class="text-xl font-extrabold text-white">BerbagiYuk</div>
-      <p class="mt-2 text-green-200 text-xs">Berbagi Sedikit, Berarti Banyak.</p>
-    </div>
-    <div class="space-y-1">
-      <div class="font-semibold text-white">Menu</div>
-      <a href="/cari" class="block hover:text-white">Cari Barang</a>
-      @if (! auth()->check() || auth()->user()->role === 'donatur')
-      <a href="/berbagi" class="block hover:text-white">Berbagi Barang</a>
-      @endif
-    </div>
-    <div class="space-y-1">
-      <div class="font-semibold text-white">Tentang</div>
-      <a href="/tentang" class="block hover:text-white">Tentang Kami</a>
-      <a href="/aturan" class="block hover:text-white">Aturan Barang</a>
-    </div>
-  </div>
-  <div class="border-t border-green-800 text-center text-xs py-3 text-green-300">© {{ date('Y') }} BerbagiYuk. Dibuat dengan ♥ untuk berbagi.</div>
-</footer>
+@include('partials.footer')
 @include('partials.toast')
+@include('partials.interaksi')
 </body>
 </html>

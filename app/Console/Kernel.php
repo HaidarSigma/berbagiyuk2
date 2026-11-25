@@ -12,7 +12,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
 {
-    $schedule->command('db:backup')->dailyAt('02:00');
+    $schedule->command('backup:lengkap')->dailyAt('02:00')->withoutOverlapping();
+    $schedule->command('backup:verifikasi')->weeklyOn(0, '03:30');   // setiap Minggu
+        $schedule->command('aset:lokal --periksa')->dailyAt('03:00');
 }
 
     /**

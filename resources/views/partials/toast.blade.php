@@ -8,9 +8,9 @@
         <div class="text-xs text-gray-500 mt-0.5">{{ $selamat['info'] }}</div>
       @endif
     </div>
-    <button type="button" onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600 self-start">✕</button>
+    <button type="button" data-tutup class="text-gray-400 hover:text-gray-600 self-start">✕</button>
   </div>
-  <script>
+  <script nonce="{{ $cspNonce ?? '' }}">
     setTimeout(() => {
       const t = document.getElementById('toastSelamat');
       if (t) {

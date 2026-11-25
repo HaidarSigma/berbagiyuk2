@@ -26,6 +26,6 @@ class BarangController extends Controller
     public function show(Barang $barang)
     {
         abort_unless($barang->status === 'tersedia' && $barang->verifikasi === 'disetujui', 404);
-        return view('detail', ['barang' => $barang->load('kategori', 'user')]);
+        return view('detail', ['barang' => $barang->load('kategori', 'user', 'fotos', 'video')]);
     }
 }

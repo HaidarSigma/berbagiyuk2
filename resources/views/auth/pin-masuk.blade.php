@@ -21,7 +21,7 @@
   <form method="POST" action="/keluar">@csrf<button class="text-sm text-gray-500">Keluar</button></form>
 
   @if ($sisa > 0)
-    <script>
+    <script nonce="{{ $cspNonce ?? '' }}">
       let sisa = {{ $sisa }};
       const hitung = document.getElementById('hitung');
       const fmt = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');

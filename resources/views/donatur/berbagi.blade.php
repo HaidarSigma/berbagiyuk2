@@ -4,9 +4,9 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bagikan Barang - BerbagiYuk</title>
   <p class="text-sm text-gray-500 -mt-4">Baca dulu <a href="/aturan" target="_blank" class="text-green-800 font-semibold">Aturan Barang</a> supaya barangmu tidak ditolak.</p>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  @include('partials.head-asset')
+  <link rel="stylesheet" href="{{ asset("vendor/leaflet/leaflet.css") }}">
+  <script src="{{ asset("vendor/leaflet/leaflet.js") }}"></script>
 </head>
 <body class="bg-gray-50 p-6">
   @php $kunci = array_keys(old('barang', [0 => []])); @endphp
@@ -31,8 +31,8 @@
           @include('donatur._baris-barang', ['i' => $i, 'kategori' => $kategori])
         @endforeach
       </div>
-      <button type="button" onclick="tambah()" class="w-full border-2 border-dashed border-green-700 text-green-800 rounded-xl py-2 text-sm font-semibold hover:bg-green-50">+ Tambah barang</button>
-      <p class="text-xs text-gray-500">Maksimal 10 barang dalam satu donasi. Semua barang diambil dari lokasi yang sama.</p>
+      <button type="button" data-aksi="tambah" class="w-full border-2 border-dashed border-green-700 text-green-800 rounded-xl py-2 text-sm font-semibold hover:bg-green-50">+ Tambah barang</button>
+      <p class="text-xs text-gray-500">Semua barang diambil dari lokasi yang sama. menjadi Maksimal 5 barang per donasi. Tiap barang wajib 3 foto dan 1 video. Semua barang diambil dari lokasi yang sama.</p>
     </section>
 
     <section class="space-y-3">
@@ -65,13 +65,13 @@
 
   <template id="tplBaris">@include('donatur._baris-barang', ['i' => '__I__', 'kategori' => $kategori])</template>
 
-  <script>
+  <script nonce="{{ $cspNonce ?? '' }}">
   let n = {{ max(array_map('intval', $kunci)) + 1 }};
   const daftar = document.getElementById('daftarBarang');
   const nomori = () => daftar.querySelectorAll('.baris-barang .no').forEach((el, i) => el.textContent = i + 1);
 
   function tambah() {
-    if (daftar.children.length >= 10) { alert('Maksimal 10 barang dalam satu donasi.'); return; }
+    if (daftar.children.length >= 5) { alert('Maksimal 5 barang dalam satu donasi.'); return; }
     daftar.insertAdjacentHTML('beforeend', document.getElementById('tplBaris').innerHTML.replaceAll('__I__', n++));
     nomori();
   }
@@ -83,5 +83,7 @@
   nomori();
 </script>
 @include('partials.peta-pilih', ['lat0' => old('latitude'), 'lng0' => old('longitude')])
+@include('donatur._media-js')
+@include('partials.interaksi')
 </body>
 </html>

@@ -68,6 +68,7 @@ class Kernel extends HttpKernel
         'admin' => \App\Http\Middleware\EnsureAdmin::class,
         'password.baru' => \App\Http\Middleware\EnsurePasswordFresh::class,
         'petugas' => \App\Http\Middleware\EnsurePetugas::class,
+        'totp' => \App\Http\Middleware\EnsureTotp::class,
 ];
     
 }

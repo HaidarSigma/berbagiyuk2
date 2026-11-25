@@ -50,7 +50,7 @@ class DataContohSeeder extends Seeder
             ['Rak Buku', 3, 'Jebres, Surakarta'],
         ];
         foreach ($data as [$judul, $kat, $lokasi]) {
-            Barang::create(['user_id' => $donatur->id, 'kategori_id' => $kat, 'judul' => $judul, 'lokasi' => $lokasi, 'verifikasi' => 'disetujui']);
+            Barang::create(['user_id' => $donatur->id, 'kategori_id' => $kat, 'judul' => $judul, 'lokasi' => $lokasi, 'verifikasi' => 'disetujui', 'status' => 'tersedia']);
         }
 
         // dua barang yang menunggu verifikasi admin

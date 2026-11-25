@@ -3,11 +3,19 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>@yield('judul') - Petugas BerbagiYuk</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] } } } }</script>
+  @include('partials.head-asset')
+  <style>
+    body.petugas-panel {
+      background-color: #dce7f2;
+      background-image:
+        radial-gradient(circle at 82% 8%, rgba(59, 130, 246, .28), transparent 24rem),
+        radial-gradient(circle at 18% 92%, rgba(14, 165, 233, .22), transparent 22rem),
+        linear-gradient(135deg, #eef4fa 0%, #dce7f2 55%, #cbdbea 100%);
+      background-attachment: fixed;
+    }
+  </style>
 </head>
-<body class="bg-slate-100 font-sans text-gray-800">
+<body class="petugas-panel font-sans text-gray-800">
 
 @php
   $menu = [['/petugas', '🏠', 'Beranda'], ['/petugas/pengambilan', '📦', 'Pengambilan'], ['/petugas/pengiriman', '🚚', 'Pengiriman'], ['/petugas/riwayat', '🗂️', 'Riwayat']];
@@ -52,7 +60,7 @@
       </div>
     </header>
 
-    <main class="p-4 md:p-6">
+    <main class="relative p-4 md:p-6">
       @if (session('status'))
         <div class="mb-4 bg-green-50 text-green-800 text-sm rounded-lg p-3">{{ session('status') }}</div>
       @endif
@@ -72,5 +80,6 @@
   @endforeach
 </nav>
 @include('partials.toast')
+@include('partials.interaksi')
 </body>
 </html>

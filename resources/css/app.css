@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body.site-publik {
+  background-color: #f2faf6;
+  background-image:
+    radial-gradient(ellipse at 8% 12%, rgba(52, 211, 153, .28), transparent 38%),
+    radial-gradient(ellipse at 92% 18%, rgba(96, 165, 250, .18), transparent 34%),
+    radial-gradient(ellipse at 82% 88%, rgba(251, 191, 36, .16), transparent 36%),
+    radial-gradient(ellipse at 15% 82%, rgba(196, 181, 253, .15), transparent 32%);
+  background-attachment: fixed;
+}
+
+.site-publik > nav {
+  box-shadow: 0 4px 18px rgba(30, 64, 175, .06);
+}
+
+.site-publik > nav::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #34d399, #60a5fa, #fbbf24, #a78bfa);
+  pointer-events: none;
+}
+
+.site-publik main .bg-white.rounded-2xl.shadow-sm,
+.site-publik main .bg-white.rounded-xl.shadow-sm {
+  border: 1px solid rgba(16, 185, 129, .12);
+  box-shadow: 0 8px 24px rgba(30, 64, 175, .045);
+}
+
+.site-publik a.bg-green-800,
+.site-publik button.bg-green-800 {
+  background-image: linear-gradient(120deg, #15803d, #0f766e);
+}
+
+.site-publik a.bg-green-800:hover,
+.site-publik button.bg-green-800:hover {
+  background-image: linear-gradient(120deg, #166534, #115e59);
+}
+
+.site-publik footer {
+  background: linear-gradient(110deg, rgba(236, 253, 245, .96), rgba(239, 246, 255, .94), rgba(255, 251, 235, .92));
+}

@@ -1,4 +1,4 @@
-<script>
+<script nonce="{{ $cspNonce ?? '' }}">
   (() => {
     const W = @json(config('wilayah'));
     const awal = {!! ($lat0 ?? null) && ($lng0 ?? null) ? '['.((float) $lat0).', '.((float) $lng0).']' : 'null' !!};

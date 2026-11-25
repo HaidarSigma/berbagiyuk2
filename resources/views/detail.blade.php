@@ -14,15 +14,26 @@
 
   <a href="/cari" class="text-sm text-green-800 font-semibold">← Kembali ke pencarian</a>
 
-  <div class="mt-3 grid lg:grid-cols-3 gap-6">
-    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm overflow-hidden">
-      <div class="h-72 relative flex items-center justify-center {{ $warna[$barang->kategori_id - 1] ?? 'bg-gray-100' }}">
-        @if ($barang->foto)
-          <img src="{{ asset('storage/'.$barang->foto) }}" class="absolute inset-0 w-full h-full object-cover">
-        @else
-          <span class="text-8xl">{{ $ikon[$barang->kategori_id - 1] ?? '📦' }}</span>
-        @endif
-      </div>
+  @php
+  $galeri = $barang->fotos->pluck('path');
+  if ($galeri->isEmpty() && $barang->foto) { $galeri = collect([$barang->foto]); }
+@endphp
+<div>
+  <div class="h-72 relative flex items-center justify-center {{ $warna[$barang->kategori_id - 1] ?? 'bg-gray-100' }}">
+    @if ($galeri->isNotEmpty())
+      <img id="fotoUtama" src="{{ asset('storage/'.$galeri->first()) }}" class="absolute inset-0 w-full h-full object-cover" alt="">
+    @else
+      <span class="text-8xl">{{ $ikon[$barang->kategori_id - 1] ?? '📦' }}</span>
+    @endif
+  </div>
+  @if ($galeri->count() > 1)
+    <div class="flex gap-2 p-3">
+      @foreach ($galeri as $f)
+        <img src="{{ asset('storage/'.$f) }}" data-galeri="fotoUtama" class="h-16 w-20 object-cover rounded-lg border cursor-pointer" alt="">
+      @endforeach
+    </div>
+  @endif
+</div>
       <div class="p-6 space-y-3">
         <div class="flex flex-wrap gap-2 text-xs">
           <span class="bg-green-100 text-green-800 font-semibold px-2.5 py-1 rounded-full">{{ $barang->kategori->nama }}</span>

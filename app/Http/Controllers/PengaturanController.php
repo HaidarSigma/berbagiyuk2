@@ -13,6 +13,7 @@ use App\Models\ResetKode;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Support\Wilayah;
+use App\Support\Gambar;
 
 class PengaturanController extends Controller
 {
@@ -61,7 +62,7 @@ class PengaturanController extends Controller
             return back()->withErrors(['password_lama' => 'Password lama salah.'], 'password');
         }
 
-        $u->forceFill(['password' => bcrypt($r->password), 'password_changed_at' => now()])->save();
+        $u->forceFill(['password' => bcrypt($r->password), 'password_changed_at' => now()])->save(); $u->putusSesi(true);
         LogAktivitas::catat('password_diganti');
 
         try {
@@ -91,7 +92,7 @@ class PengaturanController extends Controller
             return back()->withErrors(['pin_lama' => 'PIN lama salah.'], 'pin');
         }
 
-        $u->forceFill(['pin' => Hash::make($r->pin), 'pin_percobaan' => 0, 'pin_terkunci_sampai' => null])->save();
+        $u->forceFill(['pin' => Hash::make($r->pin), 'pin_percobaan' => 0, 'pin_terkunci_sampai' => null])->save(); $u->putusSesi(true);
         LogAktivitas::catat('pin_diganti');
 
         return back()->with('status', 'PIN berhasil diganti.')->with('bagian', 'pin');
@@ -116,7 +117,7 @@ class PengaturanController extends Controller
         Storage::disk('public')->delete($u->foto_profil);
     }
 
-    $u->forceFill(['foto_profil' => $r->file('foto')->store('profil', 'public')])->save();
+    $u->forceFill(['foto_profil' => Gambar::simpan($r->file('foto'), 'profil', 'public', 600)])->save();
     LogAktivitas::catat('foto_profil_diganti');
 
     return back()->with('status', 'Foto profil diperbarui.')->with('bagian', 'foto');
@@ -161,10 +162,13 @@ public function hapusAkun(Request $r)
     }
 
     // Kumpulkan berkas yang harus ikut dihapus sebelum barisnya hilang
-    $berkasPublik = Barang::where('user_id', $u->id)->pluck('foto')->filter()->all();
-    if ($u->foto_profil) {
-        $berkasPublik[] = $u->foto_profil;
-    }
+    $media        = \App\Models\BarangMedia::whereIn('barang_id', Barang::where('user_id', $u->id)->pluck('id'))->get();
+$berkasPublik = Barang::where('user_id', $u->id)->pluck('foto')
+    ->merge($media->where('jenis', 'foto')->pluck('path'))->filter()->unique()->values()->all();
+$berkasVideo  = $media->where('jenis', 'video')->pluck('path')->all();
+if ($u->foto_profil) {
+    $berkasPublik[] = $u->foto_profil;
+}
     $dokumen = $u->dokumen;
     $id      = $u->id;
     $peran   = $u->role;
@@ -179,6 +183,7 @@ public function hapusAkun(Request $r)
     });
 
     Storage::disk('public')->delete($berkasPublik);
+    Storage::disk('local')->delete($berkasVideo);
     if ($dokumen) {
         Storage::disk('local')->delete($dokumen);
     }
@@ -197,5 +202,13 @@ public function hapusAkun(Request $r)
     LogAktivitas::catat('akun_dihapus', "ID {$id} | {$peran}");
 
     return redirect('/')->with('status', 'Akunmu telah dihapus.');
+}
+
+public function keluarSemua(Request $r)
+{
+    $r->user()->putusSesi(true);
+    \App\Models\LogAktivitas::catat('sesi_lain_diputus');
+
+    return back()->with('status', 'Semua perangkat lain sudah dikeluarkan dari akunmu.');
 }
 }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Barang Saya - BerbagiYuk</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  @include('partials.head-asset')
 </head>
 <body class="bg-gray-50 p-6">
   <div class="max-w-3xl mx-auto space-y-4">
@@ -45,25 +45,59 @@
           </div>
           <div class="text-sm text-gray-500">{{ $b->kategori->nama }} · {{ $b->kondisi }} · 📍 {{ $b->lokasi }}</div>
           <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1">
-          ID:
-          <code class="bg-gray-100 rounded px-1.5 py-0.5 select-all break-all">{{ $b->token }}</code>
-      <button type="button" onclick="navigator.clipboard.writeText('{{ $b->token }}'); this.textContent='✔ Tersalin'" class="text-green-800 font-semibold">Salin</button>
+        ID:
+      <code class="bg-gray-100 rounded px-1.5 py-0.5 select-all break-all">{{ $b->token }}</code>
+  <button type="button" data-salin="{{ $b->token }}" class="text-green-800 font-semibold">Salin</button>
+</div>
+<div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-1">
+  <span>🖼️ {{ $b->fotos->count() ?: ($b->foto ? 1 : 0) }} foto</span>
+  @if ($b->fotos->isNotEmpty())
+    @foreach ($b->fotos as $foto)
+      <a target="_blank" rel="noopener" href="{{ asset('storage/'.$foto->path) }}" aria-label="Lihat foto {{ $loop->iteration }} untuk {{ $b->judul }}" class="block w-10 h-10 rounded overflow-hidden border border-gray-200">
+        <img src="{{ asset('storage/'.$foto->path) }}" class="w-full h-full object-cover" alt="Foto {{ $loop->iteration }} {{ $b->judul }}">
+      </a>
+    @endforeach
+  @elseif ($b->foto)
+    <a target="_blank" rel="noopener" href="{{ asset('storage/'.$b->foto) }}" aria-label="Lihat foto {{ $b->judul }}" class="block w-10 h-10 rounded overflow-hidden border border-gray-200">
+      <img src="{{ asset('storage/'.$b->foto) }}" class="w-full h-full object-cover" alt="Foto {{ $b->judul }}">
+    </a>
+  @endif
+  @if ($b->video)
+    <a target="_blank" rel="noopener" href="/media/video/{{ $b->video->id }}" class="text-green-800 font-semibold">🎥 Lihat video</a>
+  @else
+    <span>belum ada video</span>
+  @endif
 </div>
           @if ($b->verifikasi === 'ditolak' && $b->alasan_tolak)
             <p class="text-sm text-red-600 mt-1">Alasan: {{ $b->alasan_tolak }}</p>
+            @if ($b->verifikasi === 'disetujui')
+  @php
+    $tahap = [
+      'menunggu_ambil' => 'Disetujui, menunggu diambil petugas',
+      'tersedia'       => 'Sudah diambil, tersimpan di posko menunggu penerima',
+      'diproses'       => 'Sedang diantar ke penerima',
+      'selesai'        => 'Sudah diterima penerima',
+      'ditarik'        => 'Ditarik',
+    ];
+  @endphp
+  <p class="text-xs text-gray-600 mt-1">📍 {{ $tahap[$b->status] ?? '' }}</p>
+@endif
           @endif
 
           <div class="mt-2 flex gap-4 text-sm">
-            @if ($b->verifikasi === 'disetujui' && in_array($b->status, ['tersedia', 'diproses']))
-            <a href="/barang-saya/{{ $b->id }}/label" target="_blank" class="text-green-800 font-semibold">🏷️ Label QR</a>
-            @endif
+            @if ($b->verifikasi === 'disetujui' && $b->status === 'menunggu_ambil')
+  <a href="/barang-saya/{{ $b->id }}/label" target="_blank" class="text-green-800 font-semibold">🏷️ Label QR</a>
+  @if ($b->donasi_id)
+    <a href="/donasi/{{ $b->donasi_id }}/label" target="_blank" class="text-green-800 font-semibold">🏷️ Semua label donasi #{{ $b->donasi_id }}</a>
+  @endif
+@endif
             @if ($b->status !== 'ditarik' && in_array($b->verifikasi, ['menunggu', 'ditolak']))
               <a href="/barang-saya/{{ $b->id }}/ubah" class="text-green-800 font-semibold">
                 {{ $b->verifikasi === 'ditolak' ? '✏️ Perbaiki & ajukan ulang' : '✏️ Ubah' }}
               </a>
             @endif
-            @if ($b->status === 'tersedia')
-              <form method="POST" action="/barang-saya/{{ $b->id }}/tarik" onsubmit="return confirm('Tarik barang ini?')">@csrf
+            @if ($b->status === 'menunggu_ambil')
+              <form method="POST" action="/barang-saya/{{ $b->id }}/tarik" data-konfirmasi="Tarik barang ini?">@csrf
                 <button class="text-red-600">Tarik Barang</button>
               </form>
             @endif
@@ -74,5 +108,6 @@
       <p class="text-gray-500">Kamu belum membagikan barang.</p>
     @endforelse
   </div>
+@include('partials.interaksi')
 </body>
 </html>

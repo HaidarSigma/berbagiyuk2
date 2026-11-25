@@ -55,7 +55,7 @@
             <form method="POST" action="/admin/kebutuhan/{{ $k->id }}/status">@csrf
               <button class="font-semibold text-green-800 hover:text-green-900">{{ $k->status === 'mendukung' ? 'Tandai terpenuhi' : 'Buka kembali' }}</button>
             </form>
-            <form method="POST" action="/admin/kebutuhan/{{ $k->id }}/hapus" onsubmit="return confirm('Hapus kebutuhan ini?')">@csrf
+            <form method="POST" action="/admin/kebutuhan/{{ $k->id }}/hapus" data-konfirmasi="Hapus kebutuhan ini?">@csrf
               <button class="text-red-600 hover:text-red-700">Hapus</button>
             </form>
           </div>

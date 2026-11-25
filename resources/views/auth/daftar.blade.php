@@ -3,11 +3,21 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Daftar - BerbagiYuk</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  @include('partials.head-asset')
+  <link rel="stylesheet" href="{{ asset("vendor/leaflet/leaflet.css") }}">
+  <script src="{{ asset("vendor/leaflet/leaflet.js") }}"></script>
+  <style>
+    body {
+      background-color: #dcefe1;
+      background-image:
+        radial-gradient(ellipse at 8% 12%, rgba(74, 222, 128, 0.45), transparent 42%),
+        radial-gradient(ellipse at 92% 78%, rgba(52, 211, 153, 0.45), transparent 40%),
+        linear-gradient(135deg, #dcefe1 0%, #e8f5eb 48%, #d4ebdc 100%);
+      background-attachment: fixed;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex items-center justify-center p-4">
   <form method="POST" action="/daftar" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-8 w-full max-w-lg space-y-4">
     @csrf
     <h1 class="text-2xl font-bold text-green-800">Daftar</h1>
@@ -61,11 +71,24 @@
     <p class="text-sm text-center text-gray-500">Sudah punya akun? <a href="/masuk" class="text-green-800">Masuk</a></p>
   </form>
 
-  <script>
+  <script nonce="{{ $cspNonce ?? '' }}">
   const box = document.getElementById('boxPenerima');
   const cek = () => box.classList.toggle('hidden', document.querySelector('input[name=role]:checked').value !== 'penerima');
   document.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', cek));
   cek();
+
+  document.querySelectorAll('[data-password-toggle]').forEach(button => {
+    button.addEventListener('click', () => {
+      const input = document.getElementById(button.dataset.passwordToggle);
+      if (!input) return;
+
+      const tampil = input.type === 'password';
+      input.type = tampil ? 'text' : 'password';
+      button.textContent = tampil ? 'Sembunyikan' : 'Lihat';
+      button.setAttribute('aria-pressed', String(tampil));
+      button.setAttribute('aria-label', tampil ? 'Sembunyikan password' : 'Lihat password');
+    });
+  });
 </script>
 @include('partials.peta-pilih', ['lat0' => old('latitude'), 'lng0' => old('longitude')])
 </body>

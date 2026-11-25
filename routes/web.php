@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminBarangController;
 use App\Http\Controllers\AdminLogController;
 use App\Http\Controllers\AdminPenerimaController;
 use App\Http\Controllers\AdminPenggunaController;
+use App\Http\Controllers\AdminPengirimanController;
 use App\Http\Controllers\AdminPermintaanController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BarangController;
@@ -20,6 +21,15 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\KedaluwarsaController;
 use App\Http\Controllers\KebutuhanController;
 use App\Http\Controllers\AdminKebutuhanController;
+use App\Http\Controllers\MediaController;
+use App\Http\Controllers\BeritaController;
+use App\Http\Controllers\AdminBeritaController;
+use App\Http\Controllers\AdminPeringatanController;
+use App\Http\Controllers\CspController;
+use App\Http\Controllers\TotpController;
+
+// ---------- Laporan CSP ----------
+Route::post('/csp-laporan', [CspController::class, 'laporan'])->middleware('throttle:30,1,csp');
 
 // ---------- Publik ----------
 Route::view('/tentang', 'tentang');
@@ -28,6 +38,8 @@ Route::get('/kebutuhan', [KebutuhanController::class, 'index']);
 Route::get('/', [BerandaController::class, 'index']);
 Route::get('/cari', [BarangController::class, 'index']);
 Route::get('/barang/{barang}', [BarangController::class, 'show']);
+Route::get('/berita', [BeritaController::class, 'index']);
+Route::get('/berita/{berita}', [BeritaController::class, 'show']);
 
 // ---------- Akun ----------
 Route::get('/daftar', [AuthController::class, 'formDaftar']);
@@ -61,10 +73,9 @@ Route::get('/email/verifikasi/{id}/{hash}', function (Request $request, $id, $ha
 Route::middleware('auth')->group(function () {
     Route::get('/email/verifikasi', fn () => view('auth.verifikasi'))->name('verification.notice');
 
-    Route::post('/email/kirim-ulang', function (Request $request) {
-        $request->user()->sendEmailVerificationNotification();
-        return back()->with('status', 'Email verifikasi dikirim ulang.');
-    })->middleware('throttle:3,1,email-ulang')->name('verification.send');
+    Route::post('/email/kirim-ulang', [AuthController::class, 'kirimUlangVerifikasi'])
+        ->middleware('throttle:3,1,email-ulang')
+        ->name('verification.send');
 });
 
 // ---------- Email terverifikasi, PIN belum dimasukkan ----------
@@ -76,14 +87,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // Password kedaluwarsa harus bisa diakses tanpa middleware password.baru.
-Route::middleware(['auth', 'verified', 'pin'])->group(function () {
+    Route::middleware(['auth', 'verified', 'pin'])->group(function () {
     Route::get('/password/kedaluwarsa', [KedaluwarsaController::class, 'form']);
     Route::post('/password/kedaluwarsa', [KedaluwarsaController::class, 'simpan'])->middleware('throttle:5,1,password-kedaluwarsa');
+    Route::get('/totp/aktifkan', [TotpController::class, 'formAktifkan']);
+    Route::post('/totp/aktifkan', [TotpController::class, 'aktifkan'])->middleware('throttle:10,1,totp-aktif');
+    Route::get('/totp/kode-pulih', [TotpController::class, 'kodePulih']);
+    Route::get('/totp/verifikasi', [TotpController::class, 'formVerifikasi']);
+    Route::post('/totp/verifikasi', [TotpController::class, 'verifikasi'])->middleware('throttle:10,1,totp-verif');
 });
 
 // ---------- Pengguna penuh: login, email, dan PIN ----------
-    Route::middleware(['auth', 'verified', 'pin','password.baru'])->group(function () {
+    Route::middleware(['auth', 'verified', 'pin','password.baru','totp'])->group(function () {
     Route::get('/barang-saya/{barang}/label', [DonaturBarangController::class, 'label']);
+    Route::get('/donasi/{donasi}/label', [DonaturBarangController::class, 'labelDonasi']);
+    Route::get('/media/video/{media}', [MediaController::class, 'video']);
 
     // Donatur
     Route::get('/berbagi', [DonaturBarangController::class, 'create']);
@@ -93,6 +111,7 @@ Route::middleware(['auth', 'verified', 'pin'])->group(function () {
     Route::get('/barang-saya/{barang}/ubah', [DonaturBarangController::class, 'edit']);
     Route::post('/barang-saya/{barang}/ubah', [DonaturBarangController::class, 'update']);
     Route::get('/bukti/{tugas}/{jenis}', [PetugasController::class, 'bukti']);
+    Route::get('/bukti-pengambilan/{pengambilan}', [PetugasController::class, 'buktiPengambilan']);
 
     // Penerima
     Route::get('/status-penerima', [PenerimaController::class, 'status']);
@@ -108,26 +127,30 @@ Route::middleware(['auth', 'verified', 'pin'])->group(function () {
     Route::post('/pengaturan/pin', [PengaturanController::class, 'pin'])->middleware('throttle:5,1,ganti-pin');
     Route::post('/pengaturan/foto', [PengaturanController::class, 'foto'])->middleware('throttle:10,1,foto');
     Route::post('/pengaturan/foto/hapus', [PengaturanController::class, 'hapusFoto']);
+    Route::post('/pengaturan/keluar-semua', [PengaturanController::class, 'keluarSemua']);
     Route::post('/pengaturan/hapus-akun', [PengaturanController::class, 'hapusAkun'])->middleware('throttle:5,1,hapus-akun');
 
-    // Petugas
     Route::middleware(['auth', 'verified', 'pin', 'password.baru', 'petugas'])->prefix('petugas')->group(function () {
     Route::get('/', [PetugasController::class, 'dashboard']);
 
+    // Pengambilan: donatur ke posko
     Route::get('/pengambilan', [PetugasController::class, 'pengambilan']);
-    Route::post('/tugas/{tugas}/ambil', [PetugasController::class, 'ambil'])->middleware('throttle:10,1,tugas-ambil');
-    Route::post('/tugas/{tugas}/lepas', [PetugasController::class, 'lepas']);
-    Route::post('/pengambilan/diambil', [PetugasController::class, 'diambil'])->middleware('throttle:10,1,diambil');
+    Route::post('/pengambilan/ambil', [PetugasController::class, 'ambilPengambilan'])->middleware('throttle:10,1,ambil-ambil');
+    Route::post('/pengambilan/selesai', [PetugasController::class, 'selesaiPengambilan'])->middleware('throttle:10,1,selesai-ambil');
+    Route::post('/pengambilan/{pengambilan}/lepas', [PetugasController::class, 'lepasPengambilan']);
 
+    // Pengiriman: posko ke penerima
     Route::get('/pengiriman', [PetugasController::class, 'pengiriman']);
-    Route::post('/tugas/{tugas}/selesai', [PetugasController::class, 'selesai'])->middleware('throttle:5,1,kode-serah');
+    Route::post('/pengiriman/{tugas}/ambil', [PetugasController::class, 'ambilPengiriman'])->middleware('throttle:10,1,ambil-kirim');
+    Route::post('/pengiriman/{tugas}/lepas', [PetugasController::class, 'lepasPengiriman']);
+    Route::post('/pengiriman/{tugas}/selesai', [PetugasController::class, 'selesaiPengiriman'])->middleware('throttle:5,1,kode-serah');
 
     Route::get('/riwayat', [PetugasController::class, 'riwayat']);
 });
 });
 
 // ---------- Admin ----------
-Route::middleware(['auth', 'verified', 'pin', 'password.baru', 'admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'verified', 'pin', 'password.baru', 'admin', 'totp'])->prefix('admin')->group(function () {
     Route::get('/', [AdminBarangController::class, 'dashboard']);
 
     Route::get('/pengguna', [AdminPenggunaController::class, 'index']);
@@ -148,6 +171,9 @@ Route::middleware(['auth', 'verified', 'pin', 'password.baru', 'admin'])->prefix
     Route::post('/permintaan/{permintaan}/setujui', [AdminPermintaanController::class, 'setujui']);
     Route::post('/permintaan/{permintaan}/tolak', [AdminPermintaanController::class, 'tolak']);
 
+    Route::get('/pengiriman', [AdminPengirimanController::class, 'index']);
+    Route::get('/pengiriman/ekspor', [AdminPengirimanController::class, 'ekspor']);
+
     Route::get('/log', [AdminLogController::class, 'index']);
 
     Route::get('/kebutuhan', [AdminKebutuhanController::class, 'index']);
@@ -156,4 +182,13 @@ Route::middleware(['auth', 'verified', 'pin', 'password.baru', 'admin'])->prefix
     Route::post('/kebutuhan/{kebutuhan}/ubah', [AdminKebutuhanController::class, 'update']);
     Route::post('/kebutuhan/{kebutuhan}/status', [AdminKebutuhanController::class, 'status']);
     Route::post('/kebutuhan/{kebutuhan}/hapus', [AdminKebutuhanController::class, 'hapus']);
+
+    Route::get('/berita', [AdminBeritaController::class, 'index']);
+    Route::post('/berita', [AdminBeritaController::class, 'store']);
+    Route::post('/berita/{berita}/ubah', [AdminBeritaController::class, 'update']);
+    Route::post('/berita/{berita}/tampil', [AdminBeritaController::class, 'tampil']);
+    Route::post('/berita/{berita}/hapus', [AdminBeritaController::class, 'hapus']);
+
+    Route::get('/peringatan', [AdminPeringatanController::class, 'index']);
+    Route::post('/peringatan/baca', [AdminPeringatanController::class, 'baca']);
 });

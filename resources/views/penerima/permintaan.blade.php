@@ -40,11 +40,9 @@
   @php $t = $p->tugas; @endphp
   <div class="bg-green-50 text-green-800 text-sm rounded-lg p-3 space-y-1">
     @if (! $t || $t->status === 'baru')
-      Permintaanmu disetujui. Menunggu petugas mengambil tugas pengantaran.
+      Permintaanmu disetujui. Menunggu petugas mengantar barang ke tempatmu.
     @elseif ($t->status === 'ditugaskan')
-      Petugas sudah ditugaskan dan akan mengambil barang dari donatur.
-    @elseif ($t->status === 'diambil')
-      Barang sedang diantar ke tempatmu. Sebutkan kode ini kepada petugas saat barang diterima:
+      Petugas sedang mengantar barangmu. Sebutkan kode ini kepada petugas saat barang diterima:
       <div class="text-2xl font-extrabold tracking-widest">{{ $t->kode_serah }}</div>
     @else
       Barang sudah kamu terima. Terima kasih!
@@ -54,7 +52,7 @@
           <div class="flex gap-4 text-xs text-gray-400 items-center pt-1">
             <span>diajukan {{ $p->created_at->locale('id')->diffForHumans() }}</span>
             @if ($p->status === 'menunggu')
-              <form method="POST" action="/permintaan-saya/{{ $p->id }}/batal" onsubmit="return confirm('Batalkan permintaan ini?')">@csrf
+              <form method="POST" action="/permintaan-saya/{{ $p->id }}/batal" data-konfirmasi="Batalkan permintaan ini?">@csrf
                 <button class="text-red-600 font-semibold">Batalkan</button>
               </form>
             @endif

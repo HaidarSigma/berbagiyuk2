@@ -3,15 +3,23 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>@yield('judul') - Admin BerbagiYuk</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] } } } }</script>
+  @include('partials.head-asset')
+  <style>
+    body.admin-panel {
+      background-color: #dceadf;
+      background-image:
+        radial-gradient(circle at 82% 8%, rgba(34, 197, 94, .28), transparent 24rem),
+        radial-gradient(circle at 18% 92%, rgba(20, 184, 166, .22), transparent 22rem),
+        linear-gradient(135deg, #eef7f0 0%, #dceadf 55%, #cedfd4 100%);
+      background-attachment: fixed;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 font-sans text-gray-800">
+<body class="admin-panel font-sans text-gray-800">
 
 @php
   $item = 'flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-left';
-  $menu = [['/admin', '📊', 'Dashboard'], ['/admin/barang', '✅', 'Verifikasi Barang'], ['/admin/penerima', '👥', 'Verifikasi Penerima'], ['/admin/permintaan', '📨', 'Permintaan Masuk'],['/admin/log', '🧾', 'Log Aktivitas'],['/admin/pengguna', '👤', 'Kelola Pengguna'],['/admin/kebutuhan', '🚨', 'Kebutuhan Mendesak']];
+  $menu = [['/admin', '📊', 'Dashboard'], ['/admin/barang', '✅', 'Verifikasi Barang'], ['/admin/penerima', '👥', 'Verifikasi Penerima'], ['/admin/permintaan', '📨', 'Permintaan Masuk'],['/admin/log', '🧾', 'Log Aktivitas'],['/admin/pengguna', '👤', 'Kelola Pengguna'],['/admin/kebutuhan', '🚨', 'Kebutuhan Mendesak'],['/admin/pengiriman', '🚚', 'Riwayat Pengiriman'],['/admin/berita', '📰', 'Berita'],['/admin/peringatan', '🚨', 'Peringatan Keamanan']];
 @endphp
 
 <div class="flex min-h-screen">
@@ -65,14 +73,20 @@
       </div>
     </header>
 
-    <main class="p-6">
+    <main class="relative p-6">
       @if (session('status'))
         <div class="mb-4 bg-green-50 text-green-800 text-sm rounded-lg p-3">{{ session('status') }}</div>
       @endif
       @yield('isi')
+      @if (($peringatanBaru ?? 0) > 0 && ! request()->is('admin/peringatan'))
+        <a href="/admin/peringatan" class="mb-4 flex items-center gap-2 bg-red-600 text-white text-sm rounded-lg px-4 py-2 font-semibold hover:bg-red-700">
+    ⚠️ {{ $peringatanBaru }} peringatan keamanan baru. Periksa sekarang →
+    </a>
+  @endif
     </main>
   </div>
 </div>
 @include('partials.toast')
+@include('partials.interaksi')
 </body>
 </html>

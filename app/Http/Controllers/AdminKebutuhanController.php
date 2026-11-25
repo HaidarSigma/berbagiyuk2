@@ -6,6 +6,7 @@ use App\Models\KebutuhanMendesak;
 use App\Models\LogAktivitas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Support\Gambar;
 
 class AdminKebutuhanController extends Controller
 {
@@ -27,7 +28,7 @@ class AdminKebutuhanController extends Controller
     public function store(Request $r)
     {
         $data = $r->validate($this->aturan());
-        $data['foto']   = $r->hasFile('foto') ? $r->file('foto')->store('kebutuhan', 'public') : null;
+        $data['foto']   = $r->hasFile('foto') ? Gambar::simpan($r->file('foto'), 'kebutuhan') : null;
         $data['status'] = 'mendukung';
 
         KebutuhanMendesak::create($data);
@@ -44,7 +45,7 @@ class AdminKebutuhanController extends Controller
             if ($kebutuhan->foto) {
                 Storage::disk('public')->delete($kebutuhan->foto);
             }
-            $data['foto'] = $r->file('foto')->store('kebutuhan', 'public');
+            $data['foto'] = Gambar::simpan($r->file('foto'), 'kebutuhan');
         } else {
             unset($data['foto']);
         }

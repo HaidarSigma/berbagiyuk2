@@ -40,7 +40,7 @@
           </form>
         </div>
       </details>
-      <script>
+      <script nonce="{{ $cspNonce ?? '' }}">
         document.addEventListener('click', e => {
           const d = document.getElementById('menuProfil');
           if (d && !d.contains(e.target)) d.removeAttribute('open');

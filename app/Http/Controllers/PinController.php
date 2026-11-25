@@ -50,6 +50,7 @@ class PinController extends Controller
         $r->validate(['pin' => 'required|digits:6|confirmed']);
         $r->user()->forceFill(['pin' => Hash::make($r->pin)])->save();
         $r->session()->put('pin_ok', true);
+        $r->session()->put('sesi_versi', (int) $r->user()->sesi_versi);
         $this->sambut($r->user(), true);
 
         return redirect('/');
@@ -83,6 +84,7 @@ class PinController extends Controller
         if (Hash::check($r->pin, $u->pin)) {
             $u->forceFill(['pin_percobaan' => 0, 'pin_terkunci_sampai' => null])->save();
             $r->session()->put('pin_ok', true);
+            $r->session()->put('sesi_versi', (int) $u->sesi_versi);
             $this->sambut($u);
 
             return redirect('/');

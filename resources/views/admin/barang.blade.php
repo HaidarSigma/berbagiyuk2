@@ -20,9 +20,21 @@
   <div class="space-y-4">
     @forelse ($barang as $b)
       <div class="bg-white rounded-2xl shadow-sm p-4 flex flex-col lg:flex-row gap-4">
-        <div class="lg:w-48 h-40 lg:h-auto shrink-0 rounded-xl bg-gray-200 overflow-hidden">
-          @if ($b->foto)<img src="{{ asset('storage/'.$b->foto) }}" class="w-full h-full object-cover">@endif
-        </div>
+       <div class="lg:w-64 shrink-0 space-y-2">
+  @php $galeri = $b->fotos->isNotEmpty() ? $b->fotos->pluck('path') : collect([$b->foto])->filter(); @endphp
+  <div class="grid grid-cols-3 gap-1">
+    @forelse ($galeri as $f)
+      <a target="_blank" href="{{ asset('storage/'.$f) }}"><img src="{{ asset('storage/'.$f) }}" class="h-20 w-full object-cover rounded" alt=""></a>
+    @empty
+      <div class="col-span-3 h-24 bg-gray-200 rounded"></div>
+    @endforelse
+  </div>
+  @if ($b->video)
+    <video controls preload="metadata" class="w-full max-h-48 rounded-lg bg-black"><source src="/media/video/{{ $b->video->id }}"></video>
+  @else
+    <div class="text-xs text-yellow-700 bg-yellow-50 rounded p-2">Belum ada video (barang lama).</div>
+  @endif
+</div>
 
         <div class="flex-1 space-y-1">
           <div class="font-extrabold">{{ $b->judul }}</div>

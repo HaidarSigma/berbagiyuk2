@@ -79,7 +79,7 @@
               @if (! $boleh)
                 <span class="text-xs text-gray-400">Diatur atasan</span>
               @elseif ($p->aktif)
-                <form method="POST" action="/admin/pengguna/{{ $p->id }}/nonaktifkan" class="flex gap-2" onsubmit="return confirm('Nonaktifkan akun ini?')">
+                <form method="POST" action="/admin/pengguna/{{ $p->id }}/nonaktifkan" class="flex gap-2" data-konfirmasi="Nonaktifkan akun ini?">
                   @csrf
                   <input name="alasan_nonaktif" required maxlength="200" placeholder="Alasan" class="border border-gray-200 rounded-lg px-2 py-1.5 text-xs w-40 focus:outline-none focus:ring-2 focus:ring-red-200">
                   <button class="bg-red-600 text-white rounded-lg px-3 py-1.5 text-xs font-semibold hover:bg-red-700 transition">Nonaktifkan</button>

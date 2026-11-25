@@ -5,7 +5,7 @@
   <li data-k="num">○ Angka (0-9)</li>
   <li data-k="sym">○ Simbol (! @ # $ %)</li>
 </ul>
-<script>
+<script nonce="{{ $cspNonce ?? '' }}">
   (() => {
     const input = document.querySelector('input[name=password]');
     const cek = {

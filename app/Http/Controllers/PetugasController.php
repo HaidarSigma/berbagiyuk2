@@ -3,52 +3,145 @@
 namespace App\Http\Controllers;
 
 use App\Models\LogAktivitas;
+use App\Models\Pengambilan;
 use App\Models\Tugas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PetugasController extends Controller
 {
-    private const RELASI = ['permintaan.barang.kategori', 'permintaan.barang.user', 'permintaan.penerima'];
+    private const REL_AMBIL = ['barang.kategori', 'barang.user'];
+    private const REL_KIRIM = ['permintaan.barang.kategori', 'permintaan.penerima'];
 
-    private function mine()
+    // Barang dari satu donasi diambil dalam satu kunjungan
+    private function kelompok($koleksi)
     {
-        return Tugas::with(self::RELASI)->where('petugas_id', auth()->id());
-    }
-
-    private function milikku(Tugas $tugas): void
-    {
-        abort_unless($tugas->petugas_id === auth()->id(), 403);
+        return $koleksi->groupBy(fn ($p) => $p->barang->donasi_id ?? 'b'.$p->barang_id);
     }
 
     public function dashboard()
     {
-        $hitung = fn () => Tugas::where('petugas_id', auth()->id());
+        $id    = auth()->id();
+        $bulan = fn ($q, $kolom) => $q->whereMonth($kolom, now()->month)->whereYear($kolom, now()->year);
 
         return view('petugas.dashboard', [
-            'tersedia'  => Tugas::where('status', 'baru')->count(),
-            'menunggu'  => $hitung()->where('status', 'ditugaskan')->count(),
-            'antar'     => $hitung()->where('status', 'diambil')->count(),
-            'bulanIni'  => $hitung()->where('status', 'selesai')->whereMonth('selesai_at', now()->month)->whereYear('selesai_at', now()->year)->count(),
-            'siapAntar' => $this->mine()->where('status', 'diambil')->latest('diambil_at')->take(3)->get(),
+            'ambilBaru'  => Pengambilan::where('status', 'baru')->count(),
+            'ambilSaya'  => Pengambilan::where('petugas_id', $id)->where('status', 'ditugaskan')->count(),
+            'kirimBaru'  => Tugas::where('status', 'baru')->count(),
+            'kirimSaya'  => Tugas::where('petugas_id', $id)->where('status', 'ditugaskan')->count(),
+            'ambilBulan' => $bulan(Pengambilan::where('petugas_id', $id)->where('status', 'selesai'), 'diambil_at')->count(),
+            'kirimBulan' => $bulan(Tugas::where('petugas_id', $id)->where('status', 'selesai'), 'selesai_at')->count(),
         ]);
     }
 
-    // ---------- Pengambilan ----------
+    // ---------- Pengambilan: donatur ke posko ----------
     public function pengambilan()
     {
-        // Tugasku yang belum diambil, dikelompokkan per donasi (satu kunjungan)
-        $kelompok = $this->mine()->where('status', 'ditugaskan')->latest('ditugaskan_at')->get()
-            ->groupBy(fn ($t) => $t->permintaan->barang->donasi_id ?? 'b'.$t->permintaan->barang_id);
-
         return view('petugas.pengambilan', [
-            'kelompok' => $kelompok,
-            'tersedia' => Tugas::with(self::RELASI)->where('status', 'baru')->oldest()->get(),
+            'kelompok' => $this->kelompok(Pengambilan::with(self::REL_AMBIL)
+                ->where('petugas_id', auth()->id())->where('status', 'ditugaskan')->latest('ditugaskan_at')->get()),
+            'tersedia' => $this->kelompok(Pengambilan::with(self::REL_AMBIL)
+                ->where('status', 'baru')->oldest()->get()),
         ]);
     }
 
-    public function ambil(Tugas $tugas)
+    public function ambilPengambilan(Request $r)
+    {
+        $r->validate(['id' => 'required|array|min:1', 'id.*' => 'integer']);
+
+        $jumlah = DB::transaction(function () use ($r) {
+            $n = 0;
+            foreach (Pengambilan::whereIn('id', $r->id)->where('status', 'baru')->lockForUpdate()->get() as $p) {
+                $p->update(['status' => 'ditugaskan', 'petugas_id' => auth()->id(), 'ditugaskan_at' => now()]);
+                $n++;
+            }
+            return $n;
+        });
+
+        if ($jumlah === 0) {
+            return back()->with('status', 'Tugas ini sudah diambil petugas lain.');
+        }
+
+        LogAktivitas::catat('pengambilan_ditugaskan', $jumlah.' barang | Pengambilan #'.implode(', #', $r->id));
+
+        return back()->with('status', "{$jumlah} barang masuk ke tugasmu. Alamat donatur sekarang terlihat.");
+    }
+
+    public function lepasPengambilan(Pengambilan $pengambilan)
+    {
+        abort_unless($pengambilan->petugas_id === auth()->id() && $pengambilan->status === 'ditugaskan', 403);
+
+        $pengambilan->update(['status' => 'baru', 'petugas_id' => null, 'ditugaskan_at' => null]);
+        LogAktivitas::catat('pengambilan_dilepas', 'Pengambilan #'.$pengambilan->id);
+
+        return back()->with('status', 'Tugas dilepas dan kembali ke daftar tersedia.');
+    }
+
+    // Satu kunjungan: beberapa barang diambil sekaligus, tiap barang dikonfirmasi lewat label QR
+    public function selesaiPengambilan(Request $r)
+    {
+        $r->validate([
+            'pengambilan_id'   => 'required|array|min:1',
+            'pengambilan_id.*' => 'integer',
+            'token_barang'     => 'required|array|min:1',
+            'token_barang.*'   => 'string|max:60',
+            'foto'             => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+        ], [
+            'pengambilan_id.required' => 'Centang minimal satu barang yang diambil.',
+            'token_barang.required'   => 'Pindai label QR pada setiap barang yang diambil.',
+        ]);
+
+        $ids    = array_unique($r->pengambilan_id);
+        $daftar = Pengambilan::with('barang')->whereIn('id', $ids)
+            ->where('petugas_id', auth()->id())->where('status', 'ditugaskan')->get();
+
+        abort_if($daftar->count() !== count($ids), 403);
+
+        $dipindai = array_map(fn ($t) => Str::upper(trim($t)), $r->token_barang);
+
+        $belum = $daftar->filter(function ($p) use ($dipindai) {
+            foreach ($dipindai as $x) {
+                if (hash_equals((string) $p->barang->token, $x)) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        if ($belum->isNotEmpty()) {
+            LogAktivitas::catat('token_barang_salah', 'Pengambilan #'.$belum->pluck('id')->implode(', #'));
+
+            return back()->withErrors([
+                'token_barang' => 'Label belum dipindai atau tidak cocok untuk: '.$belum->map(fn ($p) => $p->barang->judul)->implode(', ').'.',
+            ]);
+        }
+
+        $path = $r->file('foto')->store('bukti');
+
+        DB::transaction(function () use ($daftar, $path) {
+            foreach ($daftar as $p) {
+                $p->update(['status' => 'selesai', 'foto_ambil' => $path, 'diambil_at' => now()]);
+                $p->barang->update(['status' => 'tersedia']);   // sekarang tersimpan di posko dan tampil untuk penerima
+            }
+        });
+
+        LogAktivitas::catat('barang_diambil', $daftar->count().' barang | Pengambilan #'.$daftar->pluck('id')->implode(', #'));
+
+        return redirect('/petugas/riwayat')->with('status', "{$daftar->count()} barang tercatat di Riwayat Pengambilan dan kini tersimpan di posko.");
+    }
+
+    // ---------- Pengiriman: posko ke penerima ----------
+    public function pengiriman()
+    {
+        return view('petugas.pengiriman', [
+            'saya'     => Tugas::with(self::REL_KIRIM)->where('petugas_id', auth()->id())->where('status', 'ditugaskan')->oldest('ditugaskan_at')->get(),
+            'tersedia' => Tugas::with(self::REL_KIRIM)->where('status', 'baru')->oldest()->get(),
+        ]);
+    }
+
+    public function ambilPengiriman(Tugas $tugas)
     {
         $ok = DB::transaction(function () use ($tugas) {
             $t = Tugas::lockForUpdate()->find($tugas->id);
@@ -63,63 +156,24 @@ class PetugasController extends Controller
             return back()->with('status', 'Tugas ini sudah diambil petugas lain.');
         }
 
-        LogAktivitas::catat('tugas_diambil', 'Tugas #'.$tugas->id);
+        LogAktivitas::catat('pengiriman_ditugaskan', 'Tugas #'.$tugas->id);
 
-        return back()->with('status', 'Tugas diambil. Alamat dan kontak donatur sekarang terlihat.');
+        return back()->with('status', 'Tugas pengiriman diambil. Alamat penerima sekarang terlihat.');
     }
 
-    public function lepas(Tugas $tugas)
+    public function lepasPengiriman(Tugas $tugas)
     {
-        $this->milikku($tugas);
-        abort_unless($tugas->status === 'ditugaskan', 403);
+        abort_unless($tugas->petugas_id === auth()->id() && $tugas->status === 'ditugaskan', 403);
 
         $tugas->update(['status' => 'baru', 'petugas_id' => null, 'ditugaskan_at' => null]);
-        LogAktivitas::catat('tugas_dilepas', 'Tugas #'.$tugas->id);
+        LogAktivitas::catat('pengiriman_dilepas', 'Tugas #'.$tugas->id);
 
         return back()->with('status', 'Tugas dilepas dan kembali ke daftar tersedia.');
     }
 
-    // Satu kunjungan: beberapa barang diambil sekaligus dengan satu foto bukti
-    public function diambil(Request $r)
+    public function selesaiPengiriman(Request $r, Tugas $tugas)
     {
-        $r->validate([
-            'tugas_id'   => 'required|array|min:1',
-            'tugas_id.*' => 'integer',
-            'foto'       => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
-        ], [
-            'tugas_id.required' => 'Centang minimal satu barang yang diambil.',
-        ]);
-
-        $ids    = array_unique($r->tugas_id);
-        $daftar = Tugas::whereIn('id', $ids)->where('petugas_id', auth()->id())->where('status', 'ditugaskan')->get();
-
-        abort_if($daftar->count() !== count($ids), 403);
-
-        $path = $r->file('foto')->store('bukti');
-
-        DB::transaction(function () use ($daftar, $path) {
-            foreach ($daftar as $t) {
-                $t->update(['status' => 'diambil', 'foto_ambil' => $path, 'diambil_at' => now()]);
-            }
-        });
-
-        LogAktivitas::catat('barang_diambil', $daftar->count().' barang | Tugas #'.$daftar->pluck('id')->implode(', #'));
-
-        return redirect('/petugas/pengiriman')->with('status', "{$daftar->count()} barang tercatat di Riwayat Pengambilan. Lanjutkan pengiriman ke penerima.");
-    }
-
-    // ---------- Pengiriman ----------
-    public function pengiriman()
-    {
-        return view('petugas.pengiriman', [
-            'tugas' => $this->mine()->where('status', 'diambil')->oldest('diambil_at')->get(),
-        ]);
-    }
-
-    public function selesai(Request $r, Tugas $tugas)
-    {
-        $this->milikku($tugas);
-        abort_unless($tugas->status === 'diambil', 403);
+        abort_unless($tugas->petugas_id === auth()->id() && $tugas->status === 'ditugaskan', 403);
 
         $r->validate([
             'kode'    => 'required|digits:6',
@@ -138,12 +192,7 @@ class PetugasController extends Controller
         $path = $r->file('foto')->store('bukti');
 
         DB::transaction(function () use ($tugas, $path, $r) {
-            $tugas->update([
-                'status'     => 'selesai',
-                'foto_serah' => $path,
-                'catatan'    => $r->catatan,
-                'selesai_at' => now(),
-            ]);
+            $tugas->update(['status' => 'selesai', 'foto_serah' => $path, 'catatan' => $r->catatan, 'selesai_at' => now()]);
             $tugas->permintaan->barang->update(['status' => 'selesai']);
         });
         LogAktivitas::catat('tugas_selesai', 'Tugas #'.$tugas->id);
@@ -157,16 +206,18 @@ class PetugasController extends Controller
         $tab = $r->query('tab') === 'pengiriman' ? 'pengiriman' : 'pengambilan';
 
         if ($tab === 'pengambilan') {
-            $tugas = $this->mine()->whereNotNull('diambil_at')->latest('diambil_at')->take(300)->get()
-                ->groupBy(fn ($t) => $t->diambil_at->toDateString());
+            $data = Pengambilan::with(self::REL_AMBIL)->where('petugas_id', auth()->id())->where('status', 'selesai')
+                ->latest('diambil_at')->take(300)->get()
+                ->groupBy(fn ($p) => $p->diambil_at->toDateString());
         } else {
-            $tugas = $this->mine()->where('status', 'selesai')->latest('selesai_at')->paginate(15)->withQueryString();
+            $data = Tugas::with(self::REL_KIRIM)->where('petugas_id', auth()->id())->where('status', 'selesai')
+                ->latest('selesai_at')->paginate(15)->withQueryString();
         }
 
-        return view('petugas.riwayat', ['tab' => $tab, 'tugas' => $tugas]);
+        return view('petugas.riwayat', ['tab' => $tab, 'data' => $data]);
     }
 
-    // Foto bukti: hanya admin atau petugas yang mengerjakan tugas itu
+    // Foto bukti serah terima: hanya admin atau petugas yang mengerjakannya
     public function bukti(Tugas $tugas, string $jenis)
     {
         abort_unless(in_array($jenis, ['ambil', 'serah']), 404);
@@ -177,6 +228,24 @@ class PetugasController extends Controller
         $path = $jenis === 'ambil' ? $tugas->foto_ambil : $tugas->foto_serah;
         abort_unless($path, 404);
 
+        if ($u->role === 'admin') {
+            LogAktivitas::catat('bukti_dibuka', 'Tugas #'.$tugas->id.' | '.$jenis);
+        }
+
         return Storage::disk('local')->response($path);
+    }
+
+    // Foto bukti pengambilan dari donatur
+    public function buktiPengambilan(Pengambilan $pengambilan)
+    {
+        $u = auth()->user();
+        abort_unless($u->role === 'admin' || $pengambilan->petugas_id === $u->id, 403);
+        abort_unless($pengambilan->foto_ambil, 404);
+
+        if ($u->role === 'admin') {
+            LogAktivitas::catat('bukti_dibuka', 'Pengambilan #'.$pengambilan->id);
+        }
+
+        return Storage::disk('local')->response($pengambilan->foto_ambil);
     }
 }

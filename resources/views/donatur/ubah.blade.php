@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ubah Barang - BerbagiYuk</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  @include('partials.head-asset')
+  <link rel="stylesheet" href="{{ asset("vendor/leaflet/leaflet.css") }}">
+  <script src="{{ asset("vendor/leaflet/leaflet.js") }}"></script>
 </head>
 <body class="bg-gray-50 p-6">
   <form method="POST" action="/barang-saya/{{ $barang->id }}/ubah" enctype="multipart/form-data" class="max-w-xl mx-auto bg-white rounded-2xl shadow-sm p-8 space-y-4">
@@ -43,13 +43,40 @@
 
     <textarea name="deskripsi" rows="3" placeholder="Deskripsi barang" class="w-full border rounded-lg px-3 py-2" required>{{ old('deskripsi', $barang->deskripsi) }}</textarea>
 
-    <div>
-      <label class="text-sm text-gray-600">Foto barang (kosongkan jika tidak ingin mengganti, maks. 2 MB)</label>
-      @if ($barang->foto)
-        <img src="{{ asset('storage/'.$barang->foto) }}" class="w-32 h-32 object-cover rounded-lg mt-2">
-      @endif
-      <input type="file" name="foto" accept="image/*" class="w-full text-sm mt-2">
+    <div class="space-y-4">
+  <div>
+    <div class="text-sm font-semibold">Foto barang</div>
+    <div class="flex gap-2 mt-1">
+      @forelse ($barang->fotos as $m)
+        <img src="{{ asset('storage/'.$m->path) }}" class="w-20 h-20 object-cover rounded-lg border" alt="">
+      @empty
+        @if ($barang->foto)<img src="{{ asset('storage/'.$barang->foto) }}" class="w-20 h-20 object-cover rounded-lg border" alt="">@endif
+      @endforelse
     </div>
+    <p class="text-xs text-gray-500 mt-2">Untuk mengganti foto, pilih <b>ketiga</b> foto baru (wajib 3). Kosongkan semuanya kalau tidak ingin mengganti.</p>
+    <div class="grid grid-cols-3 gap-2 mt-1">
+      @foreach (['Tampak depan', 'Tampak samping / detail', 'Kondisi / kekurangan'] as $n => $petunjuk)
+        <label class="slot-foto block border-2 border-dashed rounded-lg p-2 text-center bg-white">
+          <img class="hidden w-full h-20 object-cover rounded mb-1" alt="">
+          <span class="block text-[11px] text-gray-500">{{ $n + 1 }}. {{ $petunjuk }}</span>
+          <input type="file" name="foto[{{ $n }}]" accept="image/*" class="in-foto block w-full text-[11px] mt-1">
+        </label>
+      @endforeach
+    </div>
+  </div>
+
+  <div class="slot-video">
+    <div class="text-sm font-semibold">Video barang</div>
+    @if ($barang->video)
+      <video controls preload="metadata" class="w-full max-h-48 rounded-lg bg-black mt-1"><source src="/media/video/{{ $barang->video->id }}"></video>
+      <p class="text-xs text-gray-500 mt-1">Pilih video baru di bawah hanya kalau ingin menggantinya.</p>
+    @else
+      <p class="text-xs text-yellow-700 bg-yellow-50 rounded p-2 mt-1">Barang ini belum punya video. Sebaiknya tambahkan satu.</p>
+    @endif
+    <input type="file" name="video" accept="video/*" class="in-video w-full text-sm mt-1">
+    <p class="info-video text-xs text-green-700 mt-1"></p>
+  </div>
+</div>
 
     <div>
       <label class="text-sm text-gray-600">Area (tampil di publik)</label>
@@ -78,5 +105,7 @@
   </form>
 
   @include('partials.peta-pilih', ['lat0' => old('latitude', $barang->latitude), 'lng0' => old('longitude', $barang->longitude)])
+  @include('donatur._media-js')
+@include('partials.interaksi')
 </body>
 </html>

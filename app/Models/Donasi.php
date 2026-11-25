@@ -8,6 +8,11 @@ class Donasi extends Model
 {
     protected $fillable = ['user_id', 'lokasi', 'latitude', 'longitude'];
 
+    protected $casts = [
+        'latitude' => 'encrypted',
+        'longitude' => 'encrypted',
+    ];
+
     public function user() { return $this->belongsTo(User::class); }
     public function barangs() { return $this->hasMany(Barang::class); }
 }

@@ -32,6 +32,7 @@ class KedaluwarsaController extends Controller
         }
 
         $u->forceFill(['password' => bcrypt($r->password), 'password_changed_at' => now()])->save();
+        $u->putusSesi(true);
         LogAktivitas::catat('password_diganti', 'Password kedaluwarsa diganti');
 
         return redirect('/')->with('status', 'Password berhasil diperbarui.');

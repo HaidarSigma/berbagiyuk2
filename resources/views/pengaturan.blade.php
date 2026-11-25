@@ -36,7 +36,7 @@
   </div>
 
   @if ($u->foto_profil)
-    <form method="POST" action="/pengaturan/foto/hapus" onsubmit="return confirm('Hapus foto profil?')">@csrf
+    <form method="POST" action="/pengaturan/foto/hapus" data-konfirmasi="Hapus foto profil?">@csrf
       <button class="text-sm text-red-600">Hapus foto</button>
     </form>
     <dialog id="fotoProfilBesar" class="m-auto max-h-[90vh] max-w-[90vw] rounded-2xl bg-transparent p-0 backdrop:bg-black/75" aria-label="Foto profil ukuran besar" onclick="if (event.target === this) this.close()">
@@ -108,12 +108,37 @@
       <button class="bg-green-800 text-white rounded-lg px-5 py-2 text-sm font-semibold hover:bg-green-900">Ganti PIN</button>
     </form>
 
+    @if (in_array($u->role, ['admin', 'petugas']))
+      <div class="bg-white rounded-2xl shadow-sm p-6 space-y-1">
+        <h2 class="font-extrabold">Verifikasi 2 langkah</h2>
+        <p class="text-sm text-gray-600">
+          @if ($u->totp_aktif)
+            <span class="text-green-700 font-semibold">✔ Aktif.</span> Kode pemulihan tersisa: {{ count((array) $u->totp_kode_pulih) }}.
+            Kalau hampir habis atau HP hilang, hubungi atasan untuk pengaturan ulang.
+          @else
+            Belum aktif. <a href="/totp/aktifkan" class="text-green-800 font-semibold">Aktifkan sekarang →</a>
+          @endif
+        </p>
+      </div>
+    @endif
+
+    <form method="POST" action="/pengaturan/keluar-semua" class="bg-white rounded-2xl shadow-sm p-6 space-y-3"
+          data-konfirmasi="Keluar dari semua perangkat lain?">
+      @csrf
+      <h2 class="font-extrabold">Keamanan Sesi</h2>
+      @if (session('status') === 'Semua perangkat lain sudah dikeluarkan dari akunmu.')
+        <div class="bg-green-50 text-green-800 text-sm rounded-lg p-3">{{ session('status') }}</div>
+      @endif
+      <p class="text-sm text-gray-600">Hentikan akses dari perangkat lain yang masih masuk ke akunmu. Sesi pada perangkat ini tetap aktif.</p>
+      <button class="bg-green-800 text-white rounded-lg px-5 py-2 text-sm font-semibold hover:bg-green-900">Keluar dari Semua Perangkat Lain</button>
+    </form>
+
     @if (in_array($u->role, ['donatur', 'penerima']))
       @php $halangan = $u->penghalangHapusAkun(); @endphp
       <details class="bg-white rounded-2xl shadow-sm border border-red-200" @if ($errors->hapus->any()) open @endif>
         <summary class="list-none cursor-pointer px-6 py-4 font-extrabold text-red-600">Hapus Akun</summary>
         <form method="POST" action="/pengaturan/hapus-akun" class="px-6 pb-6 space-y-3"
-              onsubmit="return confirm('Akun dan datamu akan dihapus permanen. Lanjutkan?')">
+              data-konfirmasi="Akun dan datamu akan dihapus permanen. Lanjutkan?">
           @csrf
           <div class="bg-red-50 text-red-700 text-sm rounded-lg p-3 space-y-1">
             <p class="font-semibold">Tindakan ini tidak bisa dibatalkan.</p>
@@ -139,8 +164,8 @@
   </div>
 
   @if ($punyaLokasi)
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="{{ asset("vendor/leaflet/leaflet.css") }}">
+    <script src="{{ asset("vendor/leaflet/leaflet.js") }}"></script>
     @include('partials.peta-pilih', ['lat0' => old('latitude', $u->latitude), 'lng0' => old('longitude', $u->longitude)])
   @endif
 @endsection

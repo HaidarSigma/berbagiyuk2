@@ -18,7 +18,7 @@
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
-  <form method="POST" action="/daftar" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm p-8 w-full max-w-lg space-y-4">
+  <form method="POST" action="/daftar" enctype="multipart/form-data" data-memuat="Mendaftar..." class="bg-white rounded-2xl shadow-sm p-8 w-full max-w-lg space-y-4">
     @csrf
     <h1 class="text-2xl font-bold text-green-800">Daftar</h1>
     @if ($errors->any())
@@ -91,5 +91,6 @@
   });
 </script>
 @include('partials.peta-pilih', ['lat0' => old('latitude'), 'lng0' => old('longitude')])
+@include('partials.tombol-tema', ['melayang' => true])
 </body>
 </html>

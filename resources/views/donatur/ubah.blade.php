@@ -8,7 +8,7 @@
   <script src="{{ asset("vendor/leaflet/leaflet.js") }}"></script>
 </head>
 <body class="bg-gray-50 p-6">
-  <form method="POST" action="/barang-saya/{{ $barang->id }}/ubah" enctype="multipart/form-data" class="max-w-xl mx-auto bg-white rounded-2xl shadow-sm p-8 space-y-4">
+  <form method="POST" action="/barang-saya/{{ $barang->id }}/ubah" enctype="multipart/form-data" data-memuat="Menyimpan..." data-form-barang class="max-w-xl mx-auto bg-white rounded-2xl shadow-sm p-8 space-y-4">
     @csrf
     <div class="flex justify-between items-center">
       <h1 class="text-2xl font-bold text-green-800">Ubah Barang</h1>
@@ -29,16 +29,35 @@
     <input name="judul" value="{{ old('judul', $barang->judul) }}" placeholder="Nama barang" class="w-full border rounded-lg px-3 py-2" required>
 
     <div class="grid grid-cols-2 gap-3">
-      <select name="kategori_id" class="border rounded-lg px-3 py-2" required>
+      <select name="kategori_id" class="border rounded-lg px-3 py-2" data-kategori-barang required>
         @foreach ($kategori as $k)
-          <option value="{{ $k->id }}" @selected(old('kategori_id', $barang->kategori_id) == $k->id)>{{ $k->nama }}</option>
+          <option value="{{ $k->id }}" data-makanan="{{ $k->nama === 'Makanan & Minuman' ? '1' : '0' }}" @selected(old('kategori_id', $barang->kategori_id) == $k->id)>{{ $k->nama }}</option>
         @endforeach
       </select>
-      <select name="kondisi" class="border rounded-lg px-3 py-2" required>
+      <select name="kondisi" class="border rounded-lg px-3 py-2" data-kondisi-barang required>
+        <option value="">Pilih kondisi</option>
         @foreach (['Baru', 'Layak Pakai', 'Perlu Perbaikan'] as $kd)
-          <option @selected(old('kondisi', $barang->kondisi) == $kd)>{{ $kd }}</option>
+          <option value="{{ $kd }}" data-label-umum="{{ $kd }}" data-label-makanan="{{ ['Baru' => 'Kemasan utuh', 'Layak Pakai' => 'Layak konsumsi', 'Perlu Perbaikan' => 'Perlu Perbaikan'][$kd] }}" @selected(old('kondisi', $barang->kondisi) == $kd)>{{ $kd }}</option>
         @endforeach
       </select>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <label class="text-xs text-gray-600">Jumlah
+        <input type="number" name="jumlah" value="{{ old('jumlah', $barang->jumlah ?? '1') }}" min="0.01" max="99999999.99" step="0.01" class="w-full border rounded-lg px-3 py-2 mt-1 text-sm" required>
+      </label>
+      <label class="text-xs text-gray-600">Satuan
+        <input name="satuan" value="{{ old('satuan', $barang->satuan ?? 'buah') }}" placeholder="paket, dus, kg, liter" maxlength="30" class="w-full border rounded-lg px-3 py-2 mt-1 text-sm" required>
+      </label>
+    </div>
+
+    <div data-info-makanan class="hidden grid grid-cols-2 gap-3">
+      <label class="text-xs text-gray-600">Tanggal kedaluwarsa / batas konsumsi
+        <input type="date" name="tanggal_kedaluwarsa" value="{{ old('tanggal_kedaluwarsa', optional($barang->tanggal_kedaluwarsa)->format('Y-m-d')) }}" min="{{ now()->toDateString() }}" data-info-makanan-input class="w-full border rounded-lg px-3 py-2 mt-1 text-sm">
+      </label>
+      <label class="text-xs text-gray-600">Cara penyimpanan
+        <input name="cara_penyimpanan" value="{{ old('cara_penyimpanan', $barang->cara_penyimpanan) }}" placeholder="Contoh: suhu ruang, kulkas" data-info-makanan-input class="w-full border rounded-lg px-3 py-2 mt-1 text-sm" maxlength="200">
+      </label>
     </div>
 
     <textarea name="deskripsi" rows="3" placeholder="Deskripsi barang" class="w-full border rounded-lg px-3 py-2" required>{{ old('deskripsi', $barang->deskripsi) }}</textarea>

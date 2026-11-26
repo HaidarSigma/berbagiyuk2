@@ -7,12 +7,13 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\Pengambilan;
 use App\Models\LogAktivitas;
+use App\Notifications\StatusDonasiBerubah;
 
 class AdminBarangController extends Controller
 {
     private function antrean()
     {
-        return Barang::with('kategori', 'user', 'fotos', 'video')
+        return Barang::with('kategori', 'user', 'fotos', 'video', 'donasi.kebutuhanMendesak')
             ->where('verifikasi', 'menunggu')
             ->where('status', '!=', 'ditarik');
     }
@@ -40,6 +41,11 @@ public function setujui(Barang $barang)
 
     // Tugas pengambilan dibuat saat barang disetujui, tanpa menunggu penerima
     Pengambilan::firstOrCreate(['barang_id' => $barang->id]);
+    $barang->user->notify(new StatusDonasiBerubah(
+        'Donasi disetujui',
+        "Barang '{$barang->judul}' disetujui dan menunggu dijemput petugas.",
+        '/barang-saya#barang-'.$barang->id
+    ));
 
     LogAktivitas::catat('barang_disetujui', $barang->judul);
 
@@ -49,6 +55,11 @@ public function setujui(Barang $barang)
     {
         $data = $r->validate(['alasan_tolak' => 'required|string|max:500']);
         $barang->update(['verifikasi' => 'ditolak', 'alasan_tolak' => $data['alasan_tolak']]);
+        $barang->user->notify(new StatusDonasiBerubah(
+            'Donasi perlu diperbaiki',
+            "Barang '{$barang->judul}' belum disetujui. Buka Barang Saya untuk melihat alasannya.",
+            '/barang-saya#barang-'.$barang->id
+        ));
         return back()->with('status', "Barang '{$barang->judul}' ditolak.");
     }
 }

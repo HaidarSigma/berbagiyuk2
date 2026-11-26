@@ -26,11 +26,11 @@
             <div class="bg-white rounded-xl shadow-sm p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm">
               <div>
                 <div class="font-semibold">{{ $b->judul }}</div>
-                <div class="text-xs text-gray-500">{{ $b->kategori->nama }} · dari {{ $b->user->name }} ({{ $b->lokasi }}) · pukul {{ $p->diambil_at->format('H:i') }}</div>
+                <div class="text-xs text-gray-500">{{ $b->kategori->nama }}@if ($b->jumlahLabel()) · {{ $b->jumlahLabel() }}@endif · dari {{ $b->user->name }} ({{ $b->lokasi }}) · pukul {{ $p->diambil_at->format('H:i') }}</div>
               </div>
               <div class="flex items-center gap-3">
                 <span class="text-xs px-2 py-0.5 rounded-full {{ $s[1] }}">{{ $s[0] }}</span>
-                <a target="_blank" href="/bukti-pengambilan/{{ $p->id }}" class="text-xs font-semibold text-blue-700">📷 Bukti</a>
+                <a target="_blank" href="/bukti-pengambilan/{{ $p->id }}" class="inline-flex items-center gap-1 text-xs font-semibold text-blue-700"><x-ikon nama="kamera" class="w-3.5 h-3.5" /> Bukti</a>
               </div>
             </div>
           @endforeach
@@ -46,10 +46,10 @@
         <div class="bg-white rounded-2xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <div class="font-bold">{{ $b->judul }}</div>
-            <div class="text-xs text-gray-500">{{ $b->kategori->nama }} · untuk {{ $t->permintaan->penerima->name }} · selesai {{ $t->selesai_at->locale('id')->translatedFormat('d M Y, H:i') }}</div>
+            <div class="text-xs text-gray-500">{{ $b->kategori->nama }}@if ($b->jumlahLabel()) · {{ $b->jumlahLabel() }}@endif · untuk {{ $t->permintaan->penerima->name }} · selesai {{ $t->selesai_at->locale('id')->translatedFormat('d M Y, H:i') }}</div>
             @if ($t->catatan)<div class="text-xs text-gray-600 mt-1">Catatan: {{ $t->catatan }}</div>@endif
           </div>
-          <a target="_blank" href="/bukti/{{ $t->id }}/serah" class="text-sm font-semibold text-blue-700">📷 Bukti serah</a>
+          <a target="_blank" href="/bukti/{{ $t->id }}/serah" class="inline-flex items-center gap-1 text-sm font-semibold text-blue-700"><x-ikon nama="kamera" class="w-4 h-4" /> Bukti serah</a>
         </div>
       @empty
         <p class="text-gray-500">Belum ada pengantaran yang selesai.</p>

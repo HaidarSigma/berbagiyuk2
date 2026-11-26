@@ -9,17 +9,17 @@
     ];
     $durasi = fn ($m) => $m === null ? '-' : (intdiv((int) $m, 60) > 0 ? intdiv((int) $m, 60).' j ' : '').((int) $m % 60).' m';
     $kartu = [
-      ['Total terkirim', $total, '✅', 'bg-green-100'],
-      ['Terkirim bulan ini', $bulanIni, '📅', 'bg-blue-100'],
-      ['Rata-rata durasi', $durasi($rata), '⏱️', 'bg-purple-100'],
-      ['Sedang berlangsung', $berlangsung, '🚚', 'bg-yellow-100'],
+      ['Total terkirim', $total, 'centang-lingkaran', 'bg-green-100 text-green-700'],
+      ['Terkirim bulan ini', $bulanIni, 'kalender', 'bg-blue-100 text-blue-700'],
+      ['Rata-rata durasi', $durasi($rata), 'jam', 'bg-purple-100 text-purple-700'],
+      ['Sedang berlangsung', $berlangsung, 'truk', 'bg-yellow-100 text-yellow-700'],
     ];
   @endphp
 
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
     @foreach ($kartu as [$nama, $nilai, $ic, $warna])
       <div class="bg-white rounded-2xl p-4 shadow-sm">
-        <div class="w-10 h-10 rounded-xl {{ $warna }} flex items-center justify-center text-xl">{{ $ic }}</div>
+        <div class="w-10 h-10 rounded-xl {{ $warna }} flex items-center justify-center"><x-ikon :nama="$ic" class="w-5 h-5" /></div>
         <div class="text-2xl font-extrabold mt-3">{{ $nilai }}</div>
         <div class="text-xs text-gray-500">{{ $nama }}</div>
       </div>
@@ -52,7 +52,7 @@
 
   @if ($tab === 'selesai')
     <div class="flex justify-end mb-2">
-      <a href="/admin/pengiriman/ekspor?{{ http_build_query(request()->only('q', 'petugas', 'dari', 'sampai')) }}" class="text-sm font-semibold text-green-800">⬇️ Ekspor CSV</a>
+      <a href="/admin/pengiriman/ekspor?{{ http_build_query(request()->only('q', 'petugas', 'dari', 'sampai')) }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-green-800"><x-ikon nama="unduh" class="w-4 h-4" /> Ekspor CSV</a>
     </div>
   @endif
 
@@ -86,12 +86,15 @@
             </td>
             <td class="p-3">
               <div class="font-semibold">{{ $b->judul }}</div>
-              <div class="text-xs text-gray-500">{{ $b->kategori->nama }}</div>
+              <div class="text-xs text-gray-500">{{ $b->kategori->nama }}@if ($b->jumlahLabel()) · {{ $b->jumlahLabel() }}@endif</div>
+              @if ($b->donasi?->kebutuhanMendesak)
+                <div class="text-xs font-semibold text-orange-800">Kampanye: {{ $b->donasi->kebutuhanMendesak->judul }}</div>
+              @endif
               @if ($t->catatan)<div class="text-xs text-gray-500 mt-1">Catatan: {{ $t->catatan }}</div>@endif
             </td>
-            <td class="p-3 text-xs">
-              <div>📤 {{ $b->user->name }} <span class="text-gray-400">({{ $b->lokasi }})</span></div>
-              <div>📥 {{ $t->permintaan->penerima->name }}</div>
+            <td class="p-3 text-xs space-y-0.5">
+              <div class="flex items-center gap-1"><x-ikon nama="naik" class="w-3.5 h-3.5 text-gray-400" /> <span>{{ $b->user->name }} <span class="text-gray-400">({{ $b->lokasi }})</span></span></div>
+              <div class="flex items-center gap-1"><x-ikon nama="turun" class="w-3.5 h-3.5 text-green-700" /> <span>{{ $t->permintaan->penerima->name }}</span></div>
             </td>
             <td class="p-3">{{ $t->petugas->name ?? '-' }}</td>
             <td class="p-3 whitespace-nowrap {{ $telat ? 'text-red-600 font-semibold' : '' }}">
@@ -102,8 +105,8 @@
               @endif
             </td>
             <td class="p-3 text-xs space-x-2 whitespace-nowrap">
-              @if ($t->foto_ambil)<a target="_blank" href="/bukti/{{ $t->id }}/ambil" class="text-green-800 font-semibold">📷 Ambil</a>@endif
-              @if ($t->foto_serah)<a target="_blank" href="/bukti/{{ $t->id }}/serah" class="text-green-800 font-semibold">📷 Serah</a>@endif
+              @if ($t->foto_ambil)<a target="_blank" href="/bukti/{{ $t->id }}/ambil" class="inline-flex items-center gap-1 text-green-800 font-semibold"><x-ikon nama="kamera" class="w-3.5 h-3.5" /> Ambil</a>@endif
+              @if ($t->foto_serah)<a target="_blank" href="/bukti/{{ $t->id }}/serah" class="inline-flex items-center gap-1 text-green-800 font-semibold"><x-ikon nama="kamera" class="w-3.5 h-3.5" /> Serah</a>@endif
               @if (! $t->foto_ambil && ! $t->foto_serah)<span class="text-gray-400">-</span>@endif
             </td>
           </tr>

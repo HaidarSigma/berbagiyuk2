@@ -47,7 +47,7 @@ class BerandaController extends Controller
             'hero'     => $this->hero(),
             'berita'   => Berita::where('terbit', true)->orderByDesc('tanggal')->orderByDesc('id')->take(5)->get(),
             'kategori' => Kategori::all(),
-            'barang'   => Barang::with('kategori')->where('status', 'tersedia')->where('verifikasi', 'disetujui')->latest()->take(8)->get(),
+            'barang'   => Barang::with('kategori', 'donasi.kebutuhanMendesak')->where('status', 'tersedia')->where('verifikasi', 'disetujui')->latest()->take(8)->get(),
             'mendesak' => KebutuhanMendesak::where('status', 'mendukung')->latest()->take(3)->get(),
             'stat'     => [
                 'barang'   => Barang::where('status', 'selesai')->count(),

@@ -1,6 +1,6 @@
 <footer class="mt-6 border-t border-green-100 bg-white/70">
   <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-500">
-    <div>© {{ date('Y') }} <span class="font-semibold text-green-800">BerbagiYuk</span> · Dibuat dengan ♥ untuk berbagi.</div>
+    <div class="flex items-center gap-1">© {{ date('Y') }} <span class="font-semibold text-green-800">BerbagiYuk</span> · Untuk sesama.</div>
 
     <nav class="flex flex-wrap justify-center gap-x-4 gap-y-1">
       <a href="/tentang" class="hover:text-green-800">Tentang Kami</a>
@@ -11,6 +11,7 @@
   </div>
 </footer>
 
+@if (! auth()->check() || ! in_array(auth()->user()->role, ['admin', 'petugas'], true))
 <a href="https://wa.me/6282187904342?text=Halo%20BerbagiYuk%2C%20saya%20ingin%20bertanya."
    target="_blank" rel="noopener noreferrer"
    aria-label="Tanya melalui WhatsApp"
@@ -20,3 +21,4 @@
   </svg>
   <span class="text-sm font-semibold">Tanya via WhatsApp</span>
 </a>
+@endif

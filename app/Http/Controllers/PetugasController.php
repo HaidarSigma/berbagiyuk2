@@ -9,11 +9,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Notifications\StatusDonasiBerubah;
 
 class PetugasController extends Controller
 {
-    private const REL_AMBIL = ['barang.kategori', 'barang.user'];
-    private const REL_KIRIM = ['permintaan.barang.kategori', 'permintaan.penerima'];
+    private const REL_AMBIL = ['barang.kategori', 'barang.user', 'barang.donasi.kebutuhanMendesak'];
+    private const REL_KIRIM = ['permintaan.barang.kategori', 'permintaan.barang.donasi.kebutuhanMendesak', 'permintaan.penerima'];
 
     // Barang dari satu donasi diambil dalam satu kunjungan
     private function kelompok($koleksi)
@@ -53,8 +54,13 @@ class PetugasController extends Controller
 
         $jumlah = DB::transaction(function () use ($r) {
             $n = 0;
-            foreach (Pengambilan::whereIn('id', $r->id)->where('status', 'baru')->lockForUpdate()->get() as $p) {
+            foreach (Pengambilan::with('barang.user')->whereIn('id', $r->id)->where('status', 'baru')->lockForUpdate()->get() as $p) {
                 $p->update(['status' => 'ditugaskan', 'petugas_id' => auth()->id(), 'ditugaskan_at' => now()]);
+                $p->barang->user->notify(new StatusDonasiBerubah(
+                    'Petugas ditugaskan menjemput barang',
+                    "Petugas mulai menangani penjemputan '{$p->barang->judul}'.",
+                    '/barang-saya#barang-'.$p->barang_id
+                ));
                 $n++;
             }
             return $n;
@@ -94,7 +100,7 @@ class PetugasController extends Controller
         ]);
 
         $ids    = array_unique($r->pengambilan_id);
-        $daftar = Pengambilan::with('barang')->whereIn('id', $ids)
+        $daftar = Pengambilan::with('barang.user')->whereIn('id', $ids)
             ->where('petugas_id', auth()->id())->where('status', 'ditugaskan')->get();
 
         abort_if($daftar->count() !== count($ids), 403);
@@ -124,12 +130,20 @@ class PetugasController extends Controller
             foreach ($daftar as $p) {
                 $p->update(['status' => 'selesai', 'foto_ambil' => $path, 'diambil_at' => now()]);
                 $p->barang->update(['status' => 'tersedia']);   // sekarang tersimpan di posko dan tampil untuk penerima
+                $p->barang->user->notify(new StatusDonasiBerubah(
+                    'Barang sudah dijemput',
+                    "'{$p->barang->judul}' sudah dijemput petugas dan disimpan di posko.",
+                    '/barang-saya#barang-'.$p->barang_id
+                ));
             }
         });
 
         LogAktivitas::catat('barang_diambil', $daftar->count().' barang | Pengambilan #'.$daftar->pluck('id')->implode(', #'));
 
-        return redirect('/petugas/riwayat')->with('status', "{$daftar->count()} barang tercatat di Riwayat Pengambilan dan kini tersimpan di posko.");
+        return redirect('/petugas/riwayat')->with('sukses', [
+            'judul' => 'Pengambilan tercatat!',
+            'pesan' => "{$daftar->count()} barang kini tersimpan di posko.",
+        ]);
     }
 
     // ---------- Pengiriman: posko ke penerima ----------
@@ -155,6 +169,13 @@ class PetugasController extends Controller
         if (! $ok) {
             return back()->with('status', 'Tugas ini sudah diambil petugas lain.');
         }
+
+        $tugas->loadMissing('permintaan.penerima', 'permintaan.barang');
+        $tugas->permintaan->penerima->notify(new StatusDonasiBerubah(
+            'Petugas mengantar barang',
+            "Petugas mulai menangani pengantaran '{$tugas->permintaan->barang->judul}'.",
+            '/permintaan-saya#permintaan-'.$tugas->permintaan_id
+        ));
 
         LogAktivitas::catat('pengiriman_ditugaskan', 'Tugas #'.$tugas->id);
 
@@ -190,14 +211,23 @@ class PetugasController extends Controller
         }
 
         $path = $r->file('foto')->store('bukti');
+        $tugas->loadMissing('permintaan.penerima');
 
         DB::transaction(function () use ($tugas, $path, $r) {
             $tugas->update(['status' => 'selesai', 'foto_serah' => $path, 'catatan' => $r->catatan, 'selesai_at' => now()]);
             $tugas->permintaan->barang->update(['status' => 'selesai']);
+            $tugas->permintaan->penerima->notify(new StatusDonasiBerubah(
+                'Barang sudah diterima',
+                "Pengantaran '{$tugas->permintaan->barang->judul}' selesai. Terima kasih sudah mengonfirmasi penerimaan.",
+                '/permintaan-saya#permintaan-'.$tugas->permintaan_id
+            ));
         });
         LogAktivitas::catat('tugas_selesai', 'Tugas #'.$tugas->id);
 
-        return redirect('/petugas/riwayat?tab=pengiriman')->with('status', 'Pengantaran selesai. Terima kasih!');
+        return redirect('/petugas/riwayat?tab=pengiriman')->with('sukses', [
+            'judul' => 'Pengantaran selesai!',
+            'pesan' => 'Terima kasih, barang sudah sampai ke penerima.',
+        ]);
     }
 
     // ---------- Riwayat ----------
@@ -239,7 +269,9 @@ class PetugasController extends Controller
     public function buktiPengambilan(Pengambilan $pengambilan)
     {
         $u = auth()->user();
-        abort_unless($u->role === 'admin' || $pengambilan->petugas_id === $u->id, 403);
+        $pemilikBarang = $u->role === 'donatur'
+            && $pengambilan->barang()->where('user_id', $u->id)->exists();
+        abort_unless($u->role === 'admin' || $pengambilan->petugas_id === $u->id || $pemilikBarang, 403);
         abort_unless($pengambilan->foto_ambil, 404);
 
         if ($u->role === 'admin') {

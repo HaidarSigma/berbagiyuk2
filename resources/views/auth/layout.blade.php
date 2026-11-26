@@ -20,5 +20,6 @@
     @yield('isi')
   </div>
   @include('partials.interaksi')
+  @include('partials.tombol-tema', ['melayang' => true])
 </body>
 </html>

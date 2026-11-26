@@ -10,7 +10,7 @@ class BarangController extends Controller
 {
     public function index(Request $r)
     {
-        $barang = Barang::with('kategori')
+        $barang = Barang::with('kategori', 'donasi.kebutuhanMendesak')
             ->where('status', 'tersedia')->where('verifikasi', 'disetujui')
             ->when($r->q, fn ($q, $kata) => $q->where(fn ($w) => $w
                 ->where('judul', 'like', "%{$kata}%")
@@ -26,6 +26,6 @@ class BarangController extends Controller
     public function show(Barang $barang)
     {
         abort_unless($barang->status === 'tersedia' && $barang->verifikasi === 'disetujui', 404);
-        return view('detail', ['barang' => $barang->load('kategori', 'user', 'fotos', 'video')]);
+        return view('detail', ['barang' => $barang->load('kategori', 'user', 'fotos', 'video', 'donasi.kebutuhanMendesak')]);
     }
 }

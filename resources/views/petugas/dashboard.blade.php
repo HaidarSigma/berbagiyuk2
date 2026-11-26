@@ -3,19 +3,19 @@
 @section('isi')
   @php
     $kartu = [
-      ['Pengambilan tersedia', $ambilBaru, '📦', 'bg-yellow-100', '/petugas/pengambilan'],
-      ['Pengambilanku', $ambilSaya, '🧺', 'bg-orange-100', '/petugas/pengambilan'],
-      ['Pengiriman tersedia', $kirimBaru, '📋', 'bg-blue-100', '/petugas/pengiriman'],
-      ['Pengirimanku', $kirimSaya, '🚚', 'bg-indigo-100', '/petugas/pengiriman'],
-      ['Diambil bulan ini', $ambilBulan, '📅', 'bg-green-100', '/petugas/riwayat'],
-      ['Dikirim bulan ini', $kirimBulan, '✅', 'bg-purple-100', '/petugas/riwayat?tab=pengiriman'],
+      ['Pengambilan tersedia', $ambilBaru, 'paket', 'bg-yellow-100 text-yellow-700', '/petugas/pengambilan'],
+      ['Pengambilanku', $ambilSaya, 'keranjang', 'bg-orange-100 text-orange-700', '/petugas/pengambilan'],
+      ['Pengiriman tersedia', $kirimBaru, 'daftar', 'bg-blue-100 text-blue-700', '/petugas/pengiriman'],
+      ['Pengirimanku', $kirimSaya, 'truk', 'bg-indigo-100 text-indigo-700', '/petugas/pengiriman'],
+      ['Diambil bulan ini', $ambilBulan, 'kalender', 'bg-green-100 text-green-700', '/petugas/riwayat'],
+      ['Dikirim bulan ini', $kirimBulan, 'centang-lingkaran', 'bg-purple-100 text-purple-700', '/petugas/riwayat?tab=pengiriman'],
     ];
   @endphp
 
   <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
     @foreach ($kartu as [$label, $angka, $ic, $warna, $url])
       <a href="{{ $url }}" class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition">
-        <div class="w-10 h-10 rounded-xl {{ $warna }} flex items-center justify-center text-xl">{{ $ic }}</div>
+        <div class="w-10 h-10 rounded-xl {{ $warna }} flex items-center justify-center"><x-ikon :nama="$ic" class="w-5 h-5" /></div>
         <div class="text-2xl font-extrabold mt-3">{{ $angka }}</div>
         <div class="text-xs text-gray-500">{{ $label }}</div>
       </a>

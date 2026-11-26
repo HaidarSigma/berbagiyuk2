@@ -33,10 +33,12 @@
       <a href="/tentang" class="{{ request()->is('tentang') ? $aktif : $biasa }}">Tentang Kami</a>
     </div>
 
-    <form action="/cari" method="GET" class="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-2 w-56 text-sm">
-      <span class="text-gray-400 mr-2">🔍</span>
-      <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari barang, kategori..." data-placeholder-asli="Cari barang, kategori..." data-placeholder-animasi="Cari pakaian...|Cari buku...|Cari perlengkapan rumah..." class="bg-transparent outline-none focus-visible:outline-none w-full">
-    </form>
+    @unless (request()->is('cari*', 'berita*', 'tentang'))
+      <form action="/cari" method="GET" class="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-2 w-56 text-sm">
+        <x-ikon nama="cari" class="w-4 h-4 text-gray-400 mr-2" />
+        <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari barang, kategori..." data-placeholder-asli="Cari barang, kategori..." data-placeholder-animasi="Cari pakaian...|Cari buku...|Cari perlengkapan rumah..." class="bg-transparent outline-none focus-visible:outline-none w-full">
+      </form>
+    @endunless
 
     @include('partials.menu-profil')
   </div>
@@ -48,6 +50,8 @@
 
 @include('partials.footer')
 @include('partials.toast')
+@include('partials.sukses')
 @include('partials.interaksi')
+@include('partials.notifikasi-toast')
 </body>
 </html>

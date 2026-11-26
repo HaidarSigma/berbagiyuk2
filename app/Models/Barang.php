@@ -17,12 +17,14 @@ class Barang extends Model
         'pelajar'               => 'Pelajar',
     ];
 
-    protected $fillable = ['user_id', 'kategori_id', 'judul', 'deskripsi', 'kondisi', 'syarat_penerima', 'lokasi', 'latitude', 'longitude', 'foto', 'status', 'verifikasi', 'alasan_tolak', 'donasi_id'];
+    protected $fillable = ['user_id', 'kategori_id', 'judul', 'deskripsi', 'kondisi', 'jumlah', 'satuan', 'tanggal_kedaluwarsa', 'cara_penyimpanan', 'syarat_penerima', 'lokasi', 'latitude', 'longitude', 'foto', 'status', 'verifikasi', 'alasan_tolak', 'donasi_id'];
 
     public function donasi() { return $this->belongsTo(Donasi::class); }
 
     protected $casts = [
         'syarat_penerima' => 'array',
+        'jumlah' => 'decimal:2',
+        'tanggal_kedaluwarsa' => 'date',
         'latitude' => 'encrypted',
         'longitude' => 'encrypted',
     ];
@@ -31,6 +33,34 @@ class Barang extends Model
     public function kategori() { return $this->belongsTo(Kategori::class); }
     public function permintaan() { return $this->hasMany(Permintaan::class); }
     public function pengambilan() { return $this->hasOne(Pengambilan::class); }
+
+    public function isMakanan(): bool
+    {
+        return $this->kategori?->nama === 'Makanan & Minuman';
+    }
+
+    public function labelKondisi(): string
+    {
+        if (! $this->isMakanan()) {
+            return $this->kondisi;
+        }
+
+        return [
+            'Baru' => 'Kemasan utuh',
+            'Layak Pakai' => 'Layak konsumsi',
+        ][$this->kondisi] ?? $this->kondisi;
+    }
+
+    public function jumlahLabel(): ?string
+    {
+        if ($this->jumlah === null || ! $this->satuan) {
+            return null;
+        }
+
+        $jumlah = rtrim(rtrim(number_format((float) $this->jumlah, 2, ',', '.'), '0'), ',');
+
+        return $jumlah.' '.$this->satuan;
+    }
 
     public function medias() { return $this->hasMany(BarangMedia::class)->orderBy('urutan'); }
     public function fotos() { return $this->hasMany(BarangMedia::class)->where('jenis', 'foto')->orderBy('urutan'); }

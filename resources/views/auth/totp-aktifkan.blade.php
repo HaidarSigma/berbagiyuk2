@@ -37,5 +37,6 @@
   <script nonce="{{ $cspNonce ?? '' }}">
     new QRCode(document.getElementById('qr'), { text: @json($uri), width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
   </script>
+  @include('partials.tombol-tema', ['melayang' => true])
 </body>
 </html>

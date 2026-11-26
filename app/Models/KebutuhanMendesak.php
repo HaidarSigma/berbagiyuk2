@@ -12,4 +12,6 @@ class KebutuhanMendesak extends Model
 
     protected $table = 'kebutuhan_mendesaks';
     protected $fillable = ['judul', 'keterangan', 'lokasi', 'foto', 'status'];
+
+    public function donasis() { return $this->hasMany(Donasi::class); }
 }

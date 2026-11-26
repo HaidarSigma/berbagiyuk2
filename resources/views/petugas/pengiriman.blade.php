@@ -9,10 +9,10 @@
   @endphp
 
   <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-sm mb-5 space-y-1">
-    <div class="font-semibold text-blue-900">📦 Barang diambil dari {{ $posko['nama'] }}</div>
+    <div class="font-semibold text-blue-900 flex items-center gap-1.5"><x-ikon nama="paket" class="w-4 h-4" /> Barang diambil dari {{ $posko['nama'] }}</div>
     <div class="text-blue-800">{{ $posko['alamat'] }}</div>
     @if ($peta($posko['latitude'], $posko['longitude']))
-      <a target="_blank" href="{{ $peta($posko['latitude'], $posko['longitude']) }}" class="inline-block font-semibold text-blue-700">🗺️ Peta posko</a>
+      <a target="_blank" href="{{ $peta($posko['latitude'], $posko['longitude']) }}" class="inline-flex items-center gap-1 font-semibold text-blue-700"><x-ikon nama="peta" class="w-4 h-4" /> Peta posko</a>
     @endif
   </div>
 
@@ -23,7 +23,13 @@
       <div class="flex justify-between items-start gap-3">
         <div>
           <div class="font-extrabold">{{ $b->judul }}</div>
-          <div class="text-xs text-gray-500">{{ $b->kategori->nama }} · {{ $b->kondisi }} · Tugas #{{ $t->id }}</div>
+          <div class="text-xs text-gray-500">{{ $b->kategori->nama }} · {{ $b->labelKondisi() }}@if ($b->jumlahLabel()) · {{ $b->jumlahLabel() }}@endif · Tugas #{{ $t->id }}</div>
+          @if ($b->donasi?->kebutuhanMendesak)
+            <div class="text-xs font-semibold text-orange-800">Kampanye khusus: {{ $b->donasi->kebutuhanMendesak->judul }}</div>
+          @endif
+          @if ($b->isMakanan())
+            <div class="text-xs text-amber-800">Batas konsumsi: {{ $b->tanggal_kedaluwarsa ? $b->tanggal_kedaluwarsa->format('d/m/Y') : 'Belum diisi' }} · Penyimpanan: {{ $b->cara_penyimpanan ?: 'Belum diisi' }}</div>
+          @endif
         </div>
         <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 whitespace-nowrap">Menuju penerima</span>
       </div>
@@ -33,13 +39,13 @@
         <div class="font-semibold">{{ $n->name }} <span class="text-xs font-normal text-gray-500">({{ $jenis[$n->jenis_penerima] ?? '-' }})</span></div>
         <div class="text-gray-600">{{ $n->alamat }}</div>
         <div class="flex flex-wrap gap-3 pt-1 font-semibold text-blue-700">
-          @if ($peta($n->latitude, $n->longitude))<a target="_blank" href="{{ $peta($n->latitude, $n->longitude) }}">🗺️ Peta</a>@endif
-          <a href="tel:{{ $n->no_hp }}">📞 Telepon</a>
-          <a target="_blank" href="{{ $wa($n->no_hp) }}">💬 WhatsApp</a>
+          @if ($peta($n->latitude, $n->longitude))<a target="_blank" href="{{ $peta($n->latitude, $n->longitude) }}" class="inline-flex items-center gap-1"><x-ikon nama="peta" class="w-4 h-4" /> Peta</a>@endif
+          <a href="tel:{{ $n->no_hp }}" class="inline-flex items-center gap-1"><x-ikon nama="telepon" class="w-4 h-4" /> Telepon</a>
+          <a target="_blank" href="{{ $wa($n->no_hp) }}" class="inline-flex items-center gap-1"><x-ikon nama="pesan" class="w-4 h-4" /> WhatsApp</a>
         </div>
       </div>
 
-      <form method="POST" action="/petugas/pengiriman/{{ $t->id }}/selesai" enctype="multipart/form-data" class="space-y-2">
+      <form method="POST" action="/petugas/pengiriman/{{ $t->id }}/selesai" enctype="multipart/form-data" data-memuat="Menyimpan..." class="space-y-2">
         @csrf
         <label class="text-sm font-semibold">Kode serah terima (minta dari penerima)</label>
         <input name="kode" inputmode="numeric" maxlength="6" placeholder="6 angka" class="w-full border rounded-lg px-3 py-2 tracking-widest text-center text-lg" required>
@@ -64,8 +70,11 @@
       <div class="bg-white rounded-2xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div class="space-y-1">
           <div class="font-bold">{{ $b->judul }}</div>
-          <div class="text-xs text-gray-500">{{ $b->kategori->nama }} · {{ $b->kondisi }}</div>
-          <div class="text-sm text-gray-700">🏠 Antar ke <b>{{ \Illuminate\Support\Str::before($n->name, ' ') }}</b> ({{ $jenis[$n->jenis_penerima] ?? '-' }})</div>
+          <div class="text-xs text-gray-500">{{ $b->kategori->nama }} · {{ $b->labelKondisi() }}@if ($b->jumlahLabel()) · {{ $b->jumlahLabel() }}@endif</div>
+          @if ($b->donasi?->kebutuhanMendesak)
+            <div class="text-xs font-semibold text-orange-800">Kampanye khusus: {{ $b->donasi->kebutuhanMendesak->judul }}</div>
+          @endif
+          <div class="flex items-center gap-1.5 text-sm text-gray-700"><x-ikon nama="rumah" class="w-4 h-4 text-gray-400" /> <span>Antar ke <b>{{ \Illuminate\Support\Str::before($n->name, ' ') }}</b> ({{ $jenis[$n->jenis_penerima] ?? '-' }})</span></div>
           @if ($km !== null)<div class="text-xs text-gray-500">Jarak dari posko sekitar {{ $km }} km</div>@endif
         </div>
         <form method="POST" action="/petugas/pengiriman/{{ $t->id }}/ambil">@csrf

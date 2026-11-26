@@ -14,7 +14,7 @@
   <div class="flex justify-between items-center mb-4">
     <p class="text-sm text-gray-600">Peringatan dibuat otomatis saat kejadian gagal melampaui ambang. Detailnya ada di <a href="/admin/log" class="text-green-800 font-semibold">Log Aktivitas</a>.</p>
     <form method="POST" action="/admin/peringatan/baca">@csrf
-      <button class="text-sm font-semibold text-green-800">✔ Tandai semua dibaca</button>
+      <button class="inline-flex items-center gap-1.5 text-sm font-semibold text-green-800"><x-ikon nama="cek" class="w-4 h-4" /> Tandai semua dibaca</button>
     </form>
   </div>
 

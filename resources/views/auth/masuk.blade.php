@@ -31,5 +31,6 @@
     <p class="text-sm text-center"><a href="/lupa" class="text-green-800">Lupa password?</a></p>
     <p class="text-sm text-center text-gray-500">Belum punya akun? <a href="/daftar" class="text-green-800">Daftar</a></p>
   </form>
+  @include('partials.tombol-tema', ['melayang' => true])
 </body>
 </html>

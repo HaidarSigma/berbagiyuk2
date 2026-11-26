@@ -13,17 +13,20 @@
     <div class="bg-white rounded-2xl shadow-sm p-4 mb-4 space-y-3">
       <div class="text-sm space-y-1">
         <div class="text-xs font-semibold text-gray-500">AMBIL DARI DONATUR @if ($b0->donasi_id) · DONASI #{{ $b0->donasi_id }} @endif</div>
+        @if ($b0->donasi?->kebutuhanMendesak)
+          <div class="rounded-lg bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-900">Kampanye khusus: {{ $b0->donasi->kebutuhanMendesak->judul }} — {{ $b0->donasi->kebutuhanMendesak->lokasi }}</div>
+        @endif
         <div class="font-semibold">{{ $d->name }}</div>
         <div class="text-gray-600">{{ $d->alamat }}</div>
         <div class="text-xs text-gray-500">Area: {{ $b0->lokasi }}</div>
         <div class="flex flex-wrap gap-3 pt-1 font-semibold text-blue-700">
-          @if ($peta($b0->latitude, $b0->longitude))<a target="_blank" href="{{ $peta($b0->latitude, $b0->longitude) }}">🗺️ Peta</a>@endif
-          <a href="tel:{{ $d->no_hp }}">📞 Telepon</a>
-          <a target="_blank" href="{{ $wa($d->no_hp) }}">💬 WhatsApp</a>
+          @if ($peta($b0->latitude, $b0->longitude))<a target="_blank" href="{{ $peta($b0->latitude, $b0->longitude) }}" class="inline-flex items-center gap-1"><x-ikon nama="peta" class="w-4 h-4" /> Peta</a>@endif
+          <a href="tel:{{ $d->no_hp }}" class="inline-flex items-center gap-1"><x-ikon nama="telepon" class="w-4 h-4" /> Telepon</a>
+          <a target="_blank" href="{{ $wa($d->no_hp) }}" class="inline-flex items-center gap-1"><x-ikon nama="pesan" class="w-4 h-4" /> WhatsApp</a>
         </div>
       </div>
 
-      <form method="POST" action="/petugas/pengambilan/selesai" enctype="multipart/form-data" class="form-ambil space-y-3">
+      <form method="POST" action="/petugas/pengambilan/selesai" enctype="multipart/form-data" data-memuat="Menyimpan..." class="form-ambil space-y-3">
         @csrf
         <div class="text-sm font-semibold">Barang yang diambil (hilangkan centang kalau tidak jadi)</div>
         @foreach ($grup as $p)
@@ -31,7 +34,10 @@
           <label class="flex items-start gap-2 border rounded-lg p-2 text-sm">
             <input type="checkbox" name="pengambilan_id[]" value="{{ $p->id }}" checked class="mt-1">
             <span>
-              <b>{{ $b->judul }}</b> <span class="text-xs text-gray-500">· {{ $b->kategori->nama }} · {{ $b->kondisi }}</span>
+              <b>{{ $b->judul }}</b> <span class="text-xs text-gray-500">· {{ $b->kategori->nama }} · {{ $b->labelKondisi() }}@if ($b->jumlahLabel()) · {{ $b->jumlahLabel() }}@endif</span>
+              @if ($b->isMakanan())
+                <span class="block text-[11px] text-amber-800">Batas konsumsi: {{ $b->tanggal_kedaluwarsa ? $b->tanggal_kedaluwarsa->format('d/m/Y') : 'Belum diisi' }} · Penyimpanan: {{ $b->cara_penyimpanan ?: 'Belum diisi' }}</span>
+              @endif
               <span class="block text-[11px] text-gray-500">Label berakhiran <b class="font-mono">{{ substr($b->token, -4) }}</b></span>
             </span>
           </label>
@@ -39,11 +45,12 @@
 
         <div class="rounded-xl bg-slate-50 border p-3 space-y-2">
           <div class="text-sm font-semibold">Pindai label QR pada barang <span class="text-xs font-normal text-gray-500">(<span class="hitung">0</span> label dipindai)</span></div>
+          <p class="text-xs text-gray-500">Arahkan QR ke tengah kotak kamera. Pastikan cukup terang dan QR terlihat jelas.</p>
 
           <div class="flex flex-wrap gap-2">
-            <button type="button" class="btn-kamera bg-gray-800 text-white rounded-lg px-3 py-2 text-sm">📷 Kamera</button>
-            <label class="bg-gray-800 text-white rounded-lg px-3 py-2 text-sm cursor-pointer">
-              🖼️ Foto label
+            <button type="button" class="btn-kamera inline-flex items-center gap-1.5 bg-gray-800 text-white rounded-lg px-3 py-2 text-sm"><x-ikon nama="kamera" class="w-4 h-4" /> Kamera</button>
+            <label class="inline-flex items-center gap-1.5 bg-gray-800 text-white rounded-lg px-3 py-2 text-sm cursor-pointer">
+              <x-ikon nama="gambar" class="w-4 h-4" /> Foto label
               <input type="file" accept="image/*" capture="environment" class="input-foto-label hidden">
             </label>
           </div>
@@ -92,7 +99,11 @@
           </div>
           <ul class="text-sm text-gray-700 list-disc ml-5">
             @foreach ($grup as $p)
-              <li>{{ $p->barang->judul }} <span class="text-xs text-gray-500">· {{ $p->barang->kategori->nama }} · {{ $p->barang->kondisi }}</span></li>
+              <li>{{ $p->barang->judul }} <span class="text-xs text-gray-500">· {{ $p->barang->kategori->nama }} · {{ $p->barang->labelKondisi() }}@if ($p->barang->jumlahLabel()) · {{ $p->barang->jumlahLabel() }}@endif</span>
+                @if ($p->barang->isMakanan())
+                  <span class="block text-[11px] text-amber-800">Batas konsumsi: {{ $p->barang->tanggal_kedaluwarsa ? $p->barang->tanggal_kedaluwarsa->format('d/m/Y') : 'Belum diisi' }} · Penyimpanan: {{ $p->barang->cara_penyimpanan ?: 'Belum diisi' }}</span>
+                @endif
+              </li>
             @endforeach
           </ul>
         </div>
@@ -127,7 +138,7 @@
 
       const chip = document.createElement('span');
       chip.className = 'inline-flex items-center gap-1 bg-green-100 text-green-800 rounded-full px-2 py-0.5 text-xs font-mono';
-      chip.innerHTML = '✔ …' + t.slice(-4) + ' <button type="button" class="text-green-900">✕</button>';
+      chip.innerHTML = 'OK …' + t.slice(-4) + ' <button type="button" class="text-green-900 font-sans font-bold">×</button>';
       chip.querySelector('button').onclick = () => { h.remove(); chip.remove(); hitung(form); };
       form.querySelector('.daftar-token').appendChild(chip);
 
@@ -157,11 +168,26 @@
       aktif = { inst, area };
 
       try {
-        await inst.start({ facingMode: 'environment' }, { fps: 10, qrbox: 220 }, teks => tambahToken(form, teks));
+        const kameraList = await Html5Qrcode.getCameras();
+        if (!kameraList.length) throw new Error('Kamera tidak ditemukan.');
+        const kamera = kameraList.find(k => /back|rear|environment|belakang/i.test(k.label)) || kameraList[0];
+        await inst.start(kamera.id, {
+          fps: 10,
+          qrbox: (lebar, tinggi) => {
+            const ukuran = Math.min(320, Math.floor(Math.min(lebar, tinggi) * 0.85));
+            return { width: ukuran, height: ukuran };
+          },
+        }, teks => tambahToken(form, teks));
       } catch (e) {
         area.classList.add('hidden');
         aktif = null;
-        pesan(form, 'Kamera tidak bisa dibuka (izin ditolak atau tidak ada kamera). Pakai "Foto label" atau ketik ID.');
+        const alasan = {
+          NotAllowedError: 'Izin kamera ditolak. Izinkan akses kamera untuk situs ini di browser.',
+          NotFoundError: 'Kamera tidak ditemukan.',
+          NotReadableError: 'Kamera sedang dipakai aplikasi lain.',
+          OverconstrainedError: 'Kamera tidak mendukung mode yang diminta.',
+        }[e?.name] || e?.message || 'Periksa izin akses dan koneksi kamera.';
+        pesan(form, `${alasan} Pakai "Foto label" atau ketik ID.`);
       }
     }
 

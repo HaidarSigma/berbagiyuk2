@@ -21,5 +21,6 @@
       <a href="/" class="flex-1 bg-green-800 text-white rounded-lg py-2 text-sm text-center font-semibold hover:bg-green-900">Saya sudah menyimpan</a>
     </div>
   </div>
+  @include('partials.tombol-tema', ['melayang' => true])
 </body>
 </html>

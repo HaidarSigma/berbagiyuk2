@@ -24,8 +24,8 @@
   <div class="space-y-3">
     @forelse ($daftar as $b)
       <div class="bg-white rounded-2xl shadow-sm p-4 flex gap-4 {{ $b->terbit ? '' : 'opacity-60' }}">
-        <div class="w-28 h-20 shrink-0 rounded-xl bg-green-100 overflow-hidden flex items-center justify-center text-3xl">
-          @if ($b->foto)<img src="{{ asset('storage/'.$b->foto) }}" class="w-full h-full object-cover" alt="">@else 📰 @endif
+        <div class="w-28 h-20 shrink-0 rounded-xl bg-green-100 text-green-700 overflow-hidden flex items-center justify-center">
+          @if ($b->foto)<img src="{{ asset('storage/'.$b->foto) }}" class="w-full h-full object-cover" alt="">@else <x-ikon nama="berita" class="w-8 h-8" /> @endif
         </div>
 
         <div class="flex-1 min-w-0 space-y-1">

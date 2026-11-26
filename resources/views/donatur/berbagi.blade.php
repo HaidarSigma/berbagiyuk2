@@ -3,20 +3,39 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bagikan Barang - BerbagiYuk</title>
-  <p class="text-sm text-gray-500 -mt-4">Baca dulu <a href="/aturan" target="_blank" class="text-green-800 font-semibold">Aturan Barang</a> supaya barangmu tidak ditolak.</p>
   @include('partials.head-asset')
   <link rel="stylesheet" href="{{ asset("vendor/leaflet/leaflet.css") }}">
   <script src="{{ asset("vendor/leaflet/leaflet.js") }}"></script>
 </head>
-<body class="bg-gray-50 p-6">
+<body class="bg-green-50 p-6">
   @php $kunci = array_keys(old('barang', [0 => []])); @endphp
 
-  <form method="POST" action="/berbagi" enctype="multipart/form-data" class="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm p-8 space-y-6">
+  <p class="max-w-2xl mx-auto mb-4 text-sm text-gray-500">
+    Baca dulu <a href="/aturan" target="_blank" rel="noopener" class="text-green-800 font-semibold">Aturan Barang</a> supaya barangmu tidak ditolak.
+  </p>
+
+  <form method="POST" action="/berbagi" enctype="multipart/form-data" data-memuat="Mengunggah... jangan tutup halaman" class="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm p-8 space-y-6">
     @csrf
     <div class="flex justify-between items-center">
       <h1 class="text-2xl font-bold text-green-800">Bagikan Barang</h1>
       <a href="/" class="text-sm text-green-800">← Beranda</a>
     </div>
+
+    @if ($kebutuhanAktif->isNotEmpty())
+      <section class="rounded-xl border border-orange-200 bg-orange-50 p-4 space-y-2">
+        <label for="kebutuhanMendesak" class="block text-sm font-semibold text-orange-900">Salurkan untuk kampanye bantuan (opsional)</label>
+        <select id="kebutuhanMendesak" name="kebutuhan_mendesak_id" data-kebutuhan-campaign class="w-full rounded-lg border border-orange-200 bg-white px-3 py-2 text-sm">
+          <option value="">Donasi umum</option>
+          @foreach ($kebutuhanAktif as $kebutuhan)
+            <option value="{{ $kebutuhan->id }}" data-keterangan="{{ $kebutuhan->keterangan }}" @selected((string) old('kebutuhan_mendesak_id', $kebutuhanTerpilih) === (string) $kebutuhan->id)>
+              {{ $kebutuhan->judul }} — {{ $kebutuhan->lokasi }}
+            </option>
+          @endforeach
+        </select>
+        <p data-kebutuhan-campaign-info class="hidden text-xs text-orange-900">
+        </p>
+      </section>
+    @endif
 
     @if ($errors->any())
       <div class="text-sm text-red-600 bg-red-50 rounded-lg p-3 space-y-0.5">
@@ -49,14 +68,20 @@
       </div>
     </section>
 
-    <section>
-      <p class="text-sm text-gray-600 mb-1">Boleh diambil oleh (berlaku untuk semua barang)</p>
+    <section class="space-y-2">
+      <div data-syarat-penerima-umum>
+        <p class="text-sm text-gray-600 mb-1">Boleh diambil oleh (berlaku untuk semua barang)</p>
       <div class="grid grid-cols-2 gap-2 text-sm">
         @foreach (\App\Models\Barang::JENIS as $v => $l)
           <label class="flex items-center gap-2 border rounded-lg px-3 py-2">
             <input type="checkbox" name="syarat_penerima[]" value="{{ $v }}" @checked(in_array($v, old('syarat_penerima', array_keys(\App\Models\Barang::JENIS))))> {{ $l }}
           </label>
         @endforeach
+      </div>
+      </div>
+      <div data-syarat-penerima-korban class="hidden rounded-lg bg-orange-50 p-3 text-sm text-orange-900">
+        <input type="hidden" name="syarat_penerima[]" value="korban_bencana" disabled data-syarat-korban-input>
+        Barang kampanye ini khusus disalurkan kepada penerima kategori korban bencana.
       </div>
     </section>
 
@@ -80,6 +105,31 @@
     tombol.closest('.baris-barang').remove();
     nomori();
   }
+  document.querySelector('[data-aksi="tambah"]').addEventListener('click', tambah);
+  daftar.addEventListener('click', e => {
+    const tombol = e.target.closest('[data-aksi="hapus"]');
+    if (tombol) hapus(tombol);
+  });
+  daftar.addEventListener('invalid', e => {
+    const jenis = e.target.matches('[data-kategori-barang]') ? 'kategori'
+      : e.target.matches('[data-kondisi-barang]') ? 'kondisi' : null;
+    if (!jenis) return;
+    const pesan = 'Pilih ' + jenis + ' barang sebelum mengirim.';
+    e.target.setCustomValidity(pesan);
+    e.target.closest('[data-form-barang]').querySelector('[data-peringatan-' + jenis + ']').classList.remove('hidden');
+  }, true);
+  daftar.addEventListener('change', e => {
+    const jenis = e.target.matches('[data-kategori-barang]') ? 'kategori'
+      : e.target.matches('[data-kondisi-barang]') ? 'kondisi' : null;
+    if (!jenis) return;
+    const peringatan = e.target.closest('[data-form-barang]').querySelector('[data-peringatan-' + jenis + ']');
+    if (e.target.value) {
+      e.target.setCustomValidity('');
+      peringatan.classList.add('hidden');
+    } else if (!peringatan.classList.contains('hidden')) {
+      e.target.setCustomValidity('Pilih ' + jenis + ' barang sebelum mengirim.');
+    }
+  });
   nomori();
 </script>
 @include('partials.peta-pilih', ['lat0' => old('latitude'), 'lng0' => old('longitude')])

@@ -9,8 +9,8 @@
 <body class="site-publik flex min-h-screen flex-col bg-gray-50 text-gray-800 font-sans">
 
 @php
-  $ikon  = ['👕','📚','🪑','🏠','🎒','💻','🍽️','⋯'];
-  $warna = ['bg-green-100','bg-blue-100','bg-orange-100','bg-purple-100','bg-rose-100','bg-cyan-100','bg-red-100','bg-gray-100'];
+  $ikon  = ['pakaian','buku','furnitur','rumah','sekolah','laptop','makanan','lainnya'];
+  $warna = ['bg-green-100 text-green-700','bg-blue-100 text-blue-700','bg-orange-100 text-orange-700','bg-purple-100 text-purple-700','bg-rose-100 text-rose-700','bg-cyan-100 text-cyan-700','bg-red-100 text-red-700','bg-gray-100 text-gray-600'];
   $adaFoto = file_exists(public_path('img/hero.jpg'));
   $urlBeranda = auth()->check() && in_array(auth()->user()->role, ['admin', 'petugas'], true) ? '/?lihat=1' : '/';
 @endphp
@@ -36,7 +36,7 @@
     </div>
 
     <form action="/cari" method="GET" class="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-2 w-56 text-sm">
-      <span class="text-gray-400 mr-2">🔍</span>
+      <x-ikon nama="cari" class="w-4 h-4 text-gray-400 mr-2" />
       <input type="text" name="q" placeholder="Cari barang, kategori..." data-placeholder-asli="Cari barang, kategori..." data-placeholder-animasi="Cari pakaian...|Cari buku...|Cari perlengkapan rumah..." class="bg-transparent outline-none focus-visible:outline-none w-full">
     </form>
 
@@ -83,21 +83,18 @@
       </div>
 
       {{-- Chip judul berita (hanya tampil di slide berita) --}}
-      <button id="hero-chip" type="button" class="hidden absolute top-4 right-4 z-20 max-w-[85%] bg-white/90 hover:bg-white shadow rounded-full px-4 py-2 text-xs font-semibold text-green-800 truncate">
-        📰 <span id="hero-chip-teks"></span> →
+      <button id="hero-chip" type="button" class="hidden absolute top-4 right-4 z-20 inline-flex items-center gap-1.5 max-w-[85%] bg-white/90 hover:bg-white shadow rounded-full px-4 py-2 text-xs font-semibold text-green-800">
+        <x-ikon nama="berita" class="w-3.5 h-3.5" />
+        <span id="hero-chip-teks" class="truncate"></span>
+        <span>→</span>
       </button>
 
       @if ($slides->count() > 1)
-        <div class="absolute bottom-4 right-4 z-20 flex items-center gap-2 bg-white/80 backdrop-blur rounded-full px-2 py-1 shadow">
-          <button id="hero-prev" type="button" aria-label="Sebelumnya" class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full hover:bg-white">
+        <div class="absolute bottom-4 right-4 z-20 flex items-center gap-2 bg-white/80 backdrop-blur rounded-lg px-2 py-1 shadow">
+          <button id="hero-prev" type="button" aria-label="Sebelumnya" class="flex h-6 w-6 shrink-0 items-center justify-center rounded hover:bg-white">
             <svg aria-hidden="true" viewBox="0 0 24 24" class="block h-3 w-3" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
           </button>
-          <div id="hero-dots" class="flex h-6 items-center gap-1.5">
-            @foreach ($slides as $n => $sl)
-              <button type="button" aria-label="Gambar {{ $n + 1 }}" class="block h-2 w-2 shrink-0 rounded-full {{ $n === 0 ? 'bg-green-700' : 'bg-gray-300' }}"></button>
-            @endforeach
-          </div>
-          <button id="hero-next" type="button" aria-label="Berikutnya" class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full hover:bg-white">
+          <button id="hero-next" type="button" aria-label="Berikutnya" class="flex h-6 w-6 shrink-0 items-center justify-center rounded hover:bg-white">
             <svg aria-hidden="true" viewBox="0 0 24 24" class="block h-3 w-3" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
           </button>
         </div>
@@ -108,18 +105,18 @@
     <div class="absolute -top-10 -right-16 w-72 h-72 rounded-full bg-green-200/60"></div>
     <div class="absolute -bottom-24 right-32 w-64 h-64 rounded-full bg-green-200/60"></div>
     <div class="hidden md:flex absolute top-10 right-10 items-start gap-3">
-      <div class="w-28 h-28 bg-white rounded-2xl shadow-lg flex items-center justify-center text-5xl -rotate-6">👕</div>
-      <div class="w-28 h-28 bg-white rounded-2xl shadow-lg flex items-center justify-center text-5xl mt-5">📦</div>
-      <div class="w-28 h-28 bg-white rounded-2xl shadow-lg flex items-center justify-center text-5xl rotate-6">📚</div>
+      <div class="w-28 h-28 bg-white rounded-2xl shadow-lg flex items-center justify-center text-green-700 -rotate-6"><x-ikon nama="pakaian" class="w-12 h-12" /></div>
+      <div class="w-28 h-28 bg-white rounded-2xl shadow-lg flex items-center justify-center text-green-700 mt-5"><x-ikon nama="paket" class="w-12 h-12" /></div>
+      <div class="w-28 h-28 bg-white rounded-2xl shadow-lg flex items-center justify-center text-green-700 rotate-6"><x-ikon nama="buku" class="w-12 h-12" /></div>
     </div>
     <div class="hidden md:block absolute bottom-10 right-12 text-right text-2xl text-green-800 -rotate-6" style="font-family: 'Segoe Script', 'Comic Sans MS', cursive;">
-      Sedikit berbagi,<br>banyak kebahagiaan ♥
+      Sedikit berbagi,<br>banyak kebahagiaan
     </div>
   @endif
 
   {{-- Teks hero: tetap diam --}}
   <div class="relative z-10 px-6 py-12 md:px-14 md:py-20 md:max-w-[52%] space-y-5">
-    <span class="inline-block bg-white text-green-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">🌱 Berbagi barang, tanpa biaya</span>
+    <span class="inline-flex items-center gap-1.5 bg-white text-green-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm"><x-ikon nama="tunas" class="w-3.5 h-3.5" /> Berbagi barang, tanpa biaya</span>
     <h1 class="text-4xl md:text-5xl font-extrabold leading-tight text-gray-900">Barang tak terpakai, <span class="text-green-700">manfaat bagi sesama.</span></h1>
     <p class="text-gray-600 max-w-md">Temukan barang gratis atau bagikan barang layak pakai kepada orang yang membutuhkan.</p>
 
@@ -127,13 +124,13 @@
       @if (! auth()->check() || auth()->user()->role === 'donatur')
         <a href="/berbagi" class="bg-green-800 text-white px-6 py-3 rounded-xl font-semibold shadow hover:bg-green-900 transition">+ Bagikan Barang</a>
       @endif
-      <a href="/cari" class="bg-white/80 border-2 border-green-800 text-green-800 px-6 py-3 rounded-xl font-semibold hover:bg-white transition">🔍 Cari Barang</a>
+      <a href="/cari" class="inline-flex items-center gap-2 bg-white/80 border-2 border-green-800 text-green-800 px-6 py-3 rounded-xl font-semibold hover:bg-white transition"><x-ikon nama="cari" class="w-4 h-4" /> Cari Barang</a>
     </div>
 
     <div class="flex flex-wrap gap-x-5 gap-y-1 text-xs text-gray-600">
-      <span>✔ Barang diperiksa admin</span>
-      <span>✔ Penjemputan dibantu petugas</span>
-      <span>✔ 100% gratis</span>
+      <span class="inline-flex items-center gap-1"><x-ikon nama="cek" class="w-3.5 h-3.5 text-green-700" /> Barang diperiksa admin</span>
+      <span class="inline-flex items-center gap-1"><x-ikon nama="cek" class="w-3.5 h-3.5 text-green-700" /> Penjemputan dibantu petugas</span>
+      <span class="inline-flex items-center gap-1"><x-ikon nama="cek" class="w-3.5 h-3.5 text-green-700" /> 100% gratis</span>
     </div>
   </div>
 </section>
@@ -142,7 +139,7 @@
   {{-- Jendela berita --}}
   <div id="modal-berita" class="hidden fixed inset-0 z-50 bg-black/60 items-center justify-center p-4" role="dialog" aria-modal="true">
     <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-      <button type="button" id="mb-tutup" aria-label="Tutup" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 shadow text-gray-600 z-10">✕</button>
+      <button type="button" id="mb-tutup" aria-label="Tutup" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 shadow text-gray-600 z-10 flex items-center justify-center"><x-ikon nama="tutup" class="w-4 h-4" /></button>
       <img id="mb-foto" class="hidden w-full max-h-72 object-cover rounded-t-2xl" alt="">
       <div class="p-6 space-y-3">
         <div id="mb-tanggal" class="text-xs text-gray-500"></div>
@@ -158,7 +155,6 @@
     (() => {
       const data  = @json($dataBerita);
       const s     = [...document.querySelectorAll('.hero-slide')];
-      const d     = [...document.querySelectorAll('#hero-dots button')];
       const chip  = document.getElementById('hero-chip');
       const modal = document.getElementById('modal-berita');
       let i = 0, t, chipIdx = null;
@@ -170,8 +166,6 @@
           x.classList.toggle('opacity-0', k !== i);
           x.classList.toggle('pointer-events-none', k !== i);
         });
-        d.forEach((x, k) => { x.classList.toggle('bg-green-700', k === i); x.classList.toggle('bg-gray-300', k !== i); });
-
         const idx = s[i].dataset.berita;
         chipIdx = idx === undefined ? null : +idx;
         if (chipIdx === null) {
@@ -218,7 +212,6 @@
       if (s.length > 1) {
         document.getElementById('hero-prev').onclick = () => { tampil(i - 1); mulai(); };
         document.getElementById('hero-next').onclick = () => { tampil(i + 1); mulai(); };
-        d.forEach((x, k) => x.onclick = () => { tampil(k); mulai(); });
       }
       tampil(0);
       mulai();
@@ -230,7 +223,9 @@
   <section class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
     @foreach ($kategori as $i => $k)
       <a href="/cari?kategori={{ $k->id }}" class="group bg-white rounded-2xl p-3 text-center shadow-sm hover:shadow-md hover:-translate-y-0.5 transition">
-        <div class="w-12 h-12 mx-auto rounded-full {{ $warna[$i] ?? 'bg-gray-100' }} flex items-center justify-center text-2xl group-hover:scale-110 transition">{{ $ikon[$i] ?? '📦' }}</div>
+        <div class="w-12 h-12 mx-auto rounded-full {{ $warna[$i] ?? 'bg-gray-100 text-gray-600' }} flex items-center justify-center group-hover:scale-110 transition">
+          <x-ikon :nama="$ikon[$i] ?? 'paket'" class="w-6 h-6" />
+        </div>
         <div class="text-xs font-semibold mt-2 leading-tight">{{ $k->nama }}</div>
       </a>
     @endforeach
@@ -241,24 +236,27 @@
     {{-- Barang Gratis Terbaru --}}
     <section class="lg:col-span-2">
       <div class="flex justify-between items-center mb-3">
-        <h2 class="text-xl font-extrabold">📢 Barang Gratis Terbaru</h2>
+        <h2 class="text-xl font-extrabold flex items-center gap-2"><x-ikon nama="pengumuman" class="w-5 h-5 text-green-700" /> Barang Gratis Terbaru</h2>
         <a href="/cari" class="text-sm text-green-800 font-semibold">Lihat Semua →</a>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         @forelse ($barang as $b)
           <a href="/barang/{{ $b->id }}" class="group bg-white rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition overflow-hidden">
-            <div class="h-32 relative flex items-center justify-center {{ $warna[$b->kategori_id - 1] ?? 'bg-gray-100' }}">
+            <div class="h-32 relative flex items-center justify-center {{ $warna[$b->kategori_id - 1] ?? 'bg-gray-100 text-gray-600' }}">
               @if ($b->foto)
                 <img src="{{ asset('storage/'.$b->foto) }}" class="absolute inset-0 w-full h-full object-cover">
               @else
-                <span class="text-5xl group-hover:scale-110 transition">{{ $ikon[$b->kategori_id - 1] ?? '📦' }}</span>
+                <x-ikon :nama="$ikon[$b->kategori_id - 1] ?? 'paket'" class="w-11 h-11 group-hover:scale-110 transition" />
               @endif
               <span class="absolute bottom-2 left-2 bg-green-700 text-white text-[11px] font-semibold px-2 py-0.5 rounded-md">Tersedia</span>
             </div>
             <div class="p-3">
               <div class="text-sm font-bold leading-snug">{{ $b->judul }}</div>
-              <span class="inline-block mt-1 text-[11px] bg-green-50 text-green-800 px-2 py-0.5 rounded">{{ $b->kondisi }}</span>
-              <div class="text-xs text-gray-500 mt-2">📍 {{ $b->lokasi }}</div>
+              @if ($b->donasi?->kebutuhanMendesak)
+                <span class="inline-block mt-1 text-[11px] bg-orange-50 text-orange-800 px-2 py-0.5 rounded">Kampanye: {{ $b->donasi->kebutuhanMendesak->judul }}</span>
+              @endif
+              <span class="inline-block mt-1 text-[11px] bg-green-50 text-green-800 px-2 py-0.5 rounded">{{ $b->labelKondisi() }}</span>
+              <div class="flex items-center gap-1 text-xs text-gray-500 mt-2"><x-ikon nama="lokasi" class="w-3.5 h-3.5 text-gray-400" /> <span>{{ $b->lokasi }}</span></div>
               <div class="text-xs text-gray-400 mt-0.5">{{ $b->created_at->locale('id')->diffForHumans() }}</div>
             </div>
           </a>
@@ -272,25 +270,30 @@
     <aside class="space-y-4">
       <div class="bg-green-50 rounded-2xl p-4">
         <div class="flex justify-between items-center mb-3">
-          <h2 class="font-extrabold">📦 Kebutuhan Mendesak</h2>
+          <h2 class="font-extrabold flex items-center gap-2"><x-ikon nama="paket" class="w-4 h-4 text-green-800" /> Kebutuhan Mendesak</h2>
           <a href="/kebutuhan" class="text-xs text-green-800 font-semibold">Lihat Semua →</a>
         </div>
         <div class="space-y-2">
           @foreach ($mendesak as $m)
-            <div class="bg-white rounded-xl p-3 flex justify-between items-start gap-2 hover:shadow-sm transition">
+            @php
+              $tujuanKebutuhan = (! auth()->check() || auth()->user()->role === 'donatur')
+                  ? '/berbagi?kebutuhan='.$m->id
+                  : '/kebutuhan?fokus='.$m->id.'#kebutuhan-'.$m->id;
+            @endphp
+            <a href="{{ $tujuanKebutuhan }}" class="bg-white rounded-xl p-3 flex justify-between items-start gap-2 shadow-sm hover:shadow-md transition cursor-pointer">
               <div>
                 <div class="text-sm font-bold">{{ $m->judul }}</div>
                 <div class="text-xs text-gray-500">{{ $m->keterangan }}</div>
-                <div class="text-xs text-gray-400 mt-1">📍 {{ $m->lokasi }}</div>
+                <div class="flex items-center gap-1 text-xs text-gray-400 mt-1"><x-ikon nama="lokasi" class="w-3.5 h-3.5" /> <span>{{ $m->lokasi }}</span></div>
               </div>
-              <span class="text-[11px] bg-green-100 text-green-800 font-semibold px-2 py-0.5 rounded-full">Mendukung</span>
-            </div>
+              <span class="shrink-0 text-[11px] bg-green-100 text-green-800 font-semibold px-2 py-0.5 rounded-full">Mendukung</span>
+            </a>
           @endforeach
         </div>
       </div>
 
       <div class="relative overflow-hidden bg-gradient-to-br from-green-100 to-green-50 rounded-2xl p-5">
-        <div class="absolute -right-6 -bottom-6 text-8xl opacity-30">🤲</div>
+        <x-ikon nama="hati-tangan" class="absolute -right-4 -bottom-4 w-32 h-32 text-green-700/15 pointer-events-none" />
         <h3 class="relative font-extrabold text-lg">Yuk, jadi bagian dari kebaikan ini!</h3>
         <p class="relative text-sm text-gray-600 mt-1">Setiap barang yang kamu bagikan bisa menjadi harapan baru bagi orang lain.</p>
         @if (! auth()->check() || auth()->user()->role === 'donatur')
@@ -299,8 +302,8 @@
       </div>
 
       <div class="bg-white rounded-2xl p-4 grid-cols-3 menjadi grid-cols-2">
-        <div class="px-1"><div class="text-2xl">🎁</div><div class="font-extrabold text-green-800">{{ number_format($stat['barang'], 0, ',', '.') }}</div><div class="text-[11px] text-gray-500">Barang Dibagikan</div></div>
-        <div class="px-1"><div class="text-2xl">👥</div><div class="font-extrabold text-green-800">{{ number_format($stat['penerima'], 0, ',', '.') }}</div><div class="text-[11px] text-gray-500">Penerima Manfaat</div></div>
+        <div class="px-1"><x-ikon nama="hadiah" class="w-6 h-6 text-green-700 mb-1" /><div class="font-extrabold text-green-800">{{ number_format($stat['barang'], 0, ',', '.') }}</div><div class="text-[11px] text-gray-500">Barang Dibagikan</div></div>
+        <div class="px-1"><x-ikon nama="pengguna" class="w-6 h-6 text-green-700 mb-1" /><div class="font-extrabold text-green-800">{{ number_format($stat['penerima'], 0, ',', '.') }}</div><div class="text-[11px] text-gray-500">Penerima Manfaat</div></div>
       </div>
     </aside>
   </div>
@@ -308,16 +311,16 @@
   {{-- Nilai-nilai --}}
   @php
     $nilai = [
-      ['🛡️', 'Aman & Terpercaya', 'Profil pengguna diverifikasi dan ada fitur pelaporan.'],
-      ['🌿', 'Ramah Lingkungan', 'Mengurangi sampah dan memanfaatkan barang yang masih layak.'],
-      ['👥', 'Untuk Semua', 'Siapa pun bisa berbagi dan menerima bantuan.'],
-      ['💚', 'Bersama Lebih Baik', 'Karena kebaikan selalu berawal dari hal kecil.'],
+      ['perisai', 'Aman & Terpercaya', 'Profil pengguna diverifikasi dan ada fitur pelaporan.'],
+      ['daun', 'Ramah Lingkungan', 'Mengurangi sampah dan memanfaatkan barang yang masih layak.'],
+      ['pengguna', 'Untuk Semua', 'Siapa pun bisa berbagi dan menerima bantuan.'],
+      ['hati', 'Bersama Lebih Baik', 'Karena kebaikan selalu berawal dari hal kecil.'],
     ];
   @endphp
   <section class="bg-green-50 rounded-2xl p-6 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
     @foreach ($nilai as [$ic, $jd, $ket])
       <div class="flex gap-3">
-        <div class="w-11 h-11 shrink-0 rounded-full bg-green-700 flex items-center justify-center text-lg">{{ $ic }}</div>
+        <div class="w-11 h-11 shrink-0 rounded-full bg-green-700 text-white flex items-center justify-center"><x-ikon :nama="$ic" class="w-5 h-5" /></div>
         <div class="text-sm"><b>{{ $jd }}</b><p class="text-gray-500 text-xs mt-0.5">{{ $ket }}</p></div>
       </div>
     @endforeach
@@ -326,6 +329,7 @@
 
 @include('partials.footer')
 @include('partials.toast')
+@include('partials.sukses')
 @include('partials.interaksi')
 </body>
 </html>

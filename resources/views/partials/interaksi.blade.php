@@ -89,22 +89,6 @@
 
 <script nonce="{{ $cspNonce ?? '' }}">
   (() => {
-    document.addEventListener('click', event => {
-      const tombol = event.target.closest('[data-tutup]');
-      if (!tombol) return;
-      const elemen = tombol.parentElement;
-      if (!elemen) return;
-      elemen.classList.add('opacity-0', '-translate-y-2');
-      setTimeout(() => elemen.remove(), 500);
-    });
-
-    document.addEventListener('click', event => {
-      const gambar = event.target.closest('[data-galeri]');
-      if (!gambar) return;
-      const utama = document.getElementById(gambar.dataset.galeri);
-      if (utama) utama.src = gambar.currentSrc || gambar.src;
-    });
-
     document.addEventListener('pointerdown', event => {
       const elemen = event.target.closest('button, a');
       if (!elemen) return;

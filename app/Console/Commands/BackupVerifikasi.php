@@ -7,28 +7,36 @@ use App\Models\PeringatanKeamanan;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use ZipArchive;
+use App\Support\StatusBackup;
 
 class BackupVerifikasi extends Command
 {
     protected $signature = 'backup:verifikasi {berkas? : Nama arsip data (bawaan: yang terbaru)} {--ekstrak= : Ekstrak isi arsip ke folder ini setelah lolos verifikasi}';
     protected $description = 'Memeriksa arsip backup: bisa dibuka, dan checksum semua berkas cocok dengan manifest';
+    private string $hasil = '';
 
     public function handle(): int
-    {
-        try {
-            return $this->periksa();
-        } catch (\Throwable $e) {
-            $this->error('Verifikasi gagal: '.$e->getMessage());
-            LogAktivitas::catat('backup_gagal', 'Verifikasi: '.mb_substr($e->getMessage(), 0, 130));
-            PeringatanKeamanan::create([
-                'jenis'  => 'backup_gagal',
-                'pesan'  => 'Verifikasi backup gagal: '.mb_substr($e->getMessage(), 0, 180),
-                'jumlah' => 1,
-            ]);
+{
+    StatusBackup::mulai('verifikasi');
 
-            return self::FAILURE;
-        }
+    try {
+        $kode = $this->periksa();
+        StatusBackup::selesai('verifikasi', $this->hasil);
+
+        return $kode;
+    } catch (\Throwable $e) {
+        StatusBackup::gagal('verifikasi', $e->getMessage());
+        $this->error('Verifikasi gagal: '.$e->getMessage());
+        LogAktivitas::catat('backup_gagal', 'Verifikasi: '.mb_substr($e->getMessage(), 0, 130));
+        PeringatanKeamanan::create([
+            'jenis'  => 'backup_gagal',
+            'pesan'  => 'Verifikasi backup gagal: '.mb_substr($e->getMessage(), 0, 180),
+            'jumlah' => 1,
+        ]);
+
+        return self::FAILURE;
     }
+}
 
     private function periksa(): int
     {
@@ -93,6 +101,7 @@ class BackupVerifikasi extends Command
         }
 
         $this->info(basename($jalur).": {$ok} berkas terverifikasi (dibuat {$manifest['dibuat']}).");
+        $this->hasil = basename($jalur).' | '.$ok.' berkas terverifikasi';
         LogAktivitas::catat('backup_diverifikasi', basename($jalur).' | '.$ok.' berkas');
 
         if ($tujuan = $this->option('ekstrak')) {

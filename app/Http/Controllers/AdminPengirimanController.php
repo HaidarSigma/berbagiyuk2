@@ -23,7 +23,7 @@ class AdminPengirimanController extends Controller
     {
         $tgl = $tab === 'selesai' ? 'selesai_at' : 'created_at';
 
-        return Tugas::with('permintaan.barang.kategori', 'permintaan.barang.user', 'permintaan.penerima', 'petugas')
+        return Tugas::with('permintaan.barang.kategori', 'permintaan.barang.user', 'permintaan.barang.donasi.kebutuhanMendesak', 'permintaan.penerima', 'petugas')
             ->when($tab === 'selesai', fn ($q) => $q->where('status', 'selesai'), fn ($q) => $q->where('status', '!=', 'selesai'))
             ->when($r->filled('petugas'), fn ($q) => $q->where('petugas_id', $r->petugas))
             ->when($r->filled('dari'), fn ($q) => $q->whereDate($tgl, '>=', $r->dari))

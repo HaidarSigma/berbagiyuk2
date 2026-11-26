@@ -20,16 +20,20 @@
         <div class="flex-1 space-y-1">
           <div class="font-extrabold">{{ $u->name }}</div>
           <span class="inline-block text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">{{ $jenis[$u->jenis_penerima] ?? '-' }}</span>
-          <div class="text-sm text-gray-500">📞 {{ $u->no_hp }} · ✉️ {{ $u->email }}</div>
-          <div class="text-sm text-gray-600">📍 {{ $u->alamat }}</div>
+          <div class="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+            <span class="inline-flex items-center gap-1"><x-ikon nama="telepon" class="w-3.5 h-3.5 text-gray-400" /> {{ $u->no_hp }}</span>
+            <span>·</span>
+            <span class="inline-flex items-center gap-1"><x-ikon nama="surat" class="w-3.5 h-3.5 text-gray-400" /> {{ $u->email }}</span>
+          </div>
+          <div class="flex items-start gap-1 text-sm text-gray-600"><x-ikon nama="lokasi" class="w-4 h-4 text-gray-400 mt-0.5" /> <span>{{ $u->alamat }}</span></div>
           <div class="flex gap-4 pt-1 text-sm font-semibold text-green-800">
             @if ($u->dokumen)
-              <a target="_blank" href="/admin/penerima/{{ $u->id }}/dokumen">📄 Lihat surat keterangan →</a>
+              <a target="_blank" href="/admin/penerima/{{ $u->id }}/dokumen" class="inline-flex items-center gap-1"><x-ikon nama="dokumen" class="w-4 h-4" /> Lihat surat keterangan →</a>
             @else
               <span class="text-gray-400 font-normal">Belum ada surat</span>
             @endif
             @if ($u->latitude)
-              <a target="_blank" href="https://www.google.com/maps?q={{ $u->latitude }},{{ $u->longitude }}">🗺️ Lihat lokasi →</a>
+              <a target="_blank" href="https://www.google.com/maps?q={{ $u->latitude }},{{ $u->longitude }}" class="inline-flex items-center gap-1"><x-ikon nama="peta" class="w-4 h-4" /> Lihat lokasi →</a>
             @endif
           </div>
           <div class="text-xs text-gray-400">mendaftar {{ $u->created_at->locale('id')->diffForHumans() }}</div>
@@ -37,16 +41,16 @@
 
         <div class="lg:w-64 space-y-2">
           <form method="POST" action="/admin/penerima/{{ $u->id }}/setujui">@csrf
-            <button class="w-full bg-green-700 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-800">✔ Setujui</button>
+            <button class="w-full inline-flex items-center justify-center gap-1.5 bg-green-700 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-800"><x-ikon nama="cek" class="w-4 h-4" /> Setujui</button>
           </form>
           <form method="POST" action="/admin/penerima/{{ $u->id }}/tolak" class="space-y-2">@csrf
             <textarea name="alasan_tolak_penerima" rows="2" required placeholder="Alasan penolakan (wajib)" class="w-full border rounded-lg px-3 py-2 text-sm"></textarea>
-            <button class="w-full bg-red-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700">✖ Tolak</button>
+            <button class="w-full inline-flex items-center justify-center gap-1.5 bg-red-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700"><x-ikon nama="tutup" class="w-4 h-4" /> Tolak</button>
           </form>
         </div>
       </div>
     @empty
-      <p class="text-gray-500">Tidak ada penerima yang menunggu verifikasi. 🎉</p>
+      <p class="text-gray-500">Tidak ada penerima yang menunggu verifikasi.</p>
     @endforelse
   </div>
 @endsection

@@ -3,18 +3,18 @@
 @section('isi')
   <div class="space-y-6">
     <div>
-      <h1 class="text-3xl font-extrabold">📰 Berita Terbaru</h1>
+      <h1 class="text-3xl font-extrabold flex items-center gap-2.5"><x-ikon nama="berita" class="w-7 h-7 text-green-800" /> Berita Terbaru</h1>
       <p class="text-gray-600 mt-1">Informasi dan kabar terbaru dari BerbagiYuk.</p>
     </div>
 
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
       @forelse ($daftar as $b)
         <a href="/berita/{{ $b->id }}" class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
-          <div class="h-44 bg-green-100 flex items-center justify-center text-6xl overflow-hidden">
+          <div class="h-44 bg-green-100 text-green-700 flex items-center justify-center overflow-hidden">
             @if ($b->foto)
               <img src="{{ asset('storage/'.$b->foto) }}" class="w-full h-full object-cover" alt="{{ $b->judul }}">
             @else
-              📰
+              <x-ikon nama="berita" class="w-14 h-14" />
             @endif
           </div>
           <div class="p-5 space-y-2">

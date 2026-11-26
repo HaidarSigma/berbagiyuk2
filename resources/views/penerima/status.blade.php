@@ -4,10 +4,10 @@
   @php
     $u = auth()->user();
     $info = [
-      'menunggu'  => ['⏳', 'Sedang diperiksa', 'bg-yellow-100 text-yellow-800', 'Admin sedang memeriksa surat keteranganmu. Kamu sudah bisa melihat barang, tapi belum bisa mengajukan permintaan.'],
-      'disetujui' => ['✅', 'Terverifikasi', 'bg-green-100 text-green-800', 'Akunmu sudah diverifikasi. Kamu bisa mengajukan permintaan barang.'],
-      'ditolak'   => ['❌', 'Ditolak', 'bg-red-100 text-red-700', 'Verifikasi belum berhasil. Perbaiki sesuai alasan di bawah, lalu ajukan ulang.'],
-    ][$u->status_penerima] ?? ['', '-', '', ''];
+      'menunggu'  => ['jam', 'Sedang diperiksa', 'bg-yellow-100 text-yellow-800', 'Admin sedang memeriksa surat keteranganmu. Kamu sudah bisa melihat barang, tapi belum bisa mengajukan permintaan.'],
+      'disetujui' => ['centang-lingkaran', 'Terverifikasi', 'bg-green-100 text-green-800', 'Akunmu sudah diverifikasi. Kamu bisa mengajukan permintaan barang.'],
+      'ditolak'   => ['silang-lingkaran', 'Ditolak', 'bg-red-100 text-red-700', 'Verifikasi belum berhasil. Perbaiki sesuai alasan di bawah, lalu ajukan ulang.'],
+    ][$u->status_penerima] ?? ['', '-', 'bg-gray-100 text-gray-600', ''];
   @endphp
 
   <div class="max-w-md mx-auto space-y-4">
@@ -17,7 +17,9 @@
 
     <div class="bg-white rounded-2xl shadow-sm p-6 space-y-3">
       <h1 class="text-2xl font-bold text-green-800">Status Verifikasi</h1>
-      <div class="text-4xl">{{ $info[0] }}</div>
+      @if ($info[0])
+        <div class="w-12 h-12 rounded-xl {{ $info[2] }} flex items-center justify-center"><x-ikon :nama="$info[0]" class="w-6 h-6" /></div>
+      @endif
       <span class="inline-block text-sm font-semibold px-3 py-1 rounded-full {{ $info[2] }}">{{ $info[1] }}</span>
       <p class="text-sm text-gray-600">{{ $info[3] }}</p>
       @if ($u->status_penerima === 'ditolak' && $u->alasan_tolak_penerima)

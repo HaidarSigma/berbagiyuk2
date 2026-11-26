@@ -27,6 +27,8 @@ use App\Http\Controllers\AdminBeritaController;
 use App\Http\Controllers\AdminPeringatanController;
 use App\Http\Controllers\CspController;
 use App\Http\Controllers\TotpController;
+use App\Http\Controllers\AdminBackupController;
+use App\Http\Controllers\StatusNotifikasiController;
 
 // ---------- Laporan CSP ----------
 Route::post('/csp-laporan', [CspController::class, 'laporan'])->middleware('throttle:30,1,csp');
@@ -102,6 +104,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/barang-saya/{barang}/label', [DonaturBarangController::class, 'label']);
     Route::get('/donasi/{donasi}/label', [DonaturBarangController::class, 'labelDonasi']);
     Route::get('/media/video/{media}', [MediaController::class, 'video']);
+
+    // Notifikasi status
+    Route::get('/notifikasi', [StatusNotifikasiController::class, 'index'])->name('notifikasi.index');
+    Route::get('/notifikasi/status', [StatusNotifikasiController::class, 'status'])
+        ->middleware('throttle:60,1')->name('notifikasi.status');
+    Route::post('/notifikasi/{id}/buka', [StatusNotifikasiController::class, 'buka'])->name('notifikasi.buka');
+    Route::post('/notifikasi/baca-semua', [StatusNotifikasiController::class, 'bacaSemua'])->name('notifikasi.baca-semua');
 
     // Donatur
     Route::get('/berbagi', [DonaturBarangController::class, 'create']);
@@ -191,4 +200,9 @@ Route::middleware(['auth', 'verified', 'pin', 'password.baru', 'admin', 'totp'])
 
     Route::get('/peringatan', [AdminPeringatanController::class, 'index']);
     Route::post('/peringatan/baca', [AdminPeringatanController::class, 'baca']);
+
+    Route::get('/backup', [AdminBackupController::class, 'index']);
+    Route::post('/backup/jalankan', [AdminBackupController::class, 'jalankan'])->middleware('throttle:5,1,backup-jalan');
+    Route::get('/backup/status', [AdminBackupController::class, 'status'])->middleware('throttle:60,1');
+    Route::post('/backup/unduh', [AdminBackupController::class, 'unduh'])->middleware('throttle:5,1,backup-unduh');
 });

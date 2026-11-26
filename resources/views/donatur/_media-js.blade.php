@@ -33,7 +33,7 @@
           alert('Video maksimal ' + MAKS_DETIK + ' detik. Videomu ' + Math.round(v.duration) + ' detik.');
           el.value = '';
         } else {
-          info.textContent = '✔ ' + Math.round(v.duration) + ' detik · ' + (f.size / 1048576).toFixed(1) + ' MB';
+          info.textContent = 'Siap · ' + Math.round(v.duration) + ' detik · ' + (f.size / 1048576).toFixed(1) + ' MB';
         }
       };
       v.onerror = () => { info.textContent = (f.size / 1048576).toFixed(1) + ' MB'; };

@@ -8,28 +8,36 @@
         : collect();
     $sudah = $aktif->contains('barang_id', $barang->id);
     $penuh = $aktif->count() >= 3;
-    $ikon  = ['👕','📚','🪑','🏠','🎒','💻','🍽️','⋯'];
-    $warna = ['bg-green-100','bg-blue-100','bg-orange-100','bg-purple-100','bg-rose-100','bg-cyan-100','bg-red-100','bg-gray-100'];
+    $ikon  = ['pakaian','buku','furnitur','rumah','sekolah','laptop','makanan','lainnya'];
+    $warna = ['bg-green-100 text-green-700','bg-blue-100 text-blue-700','bg-orange-100 text-orange-700','bg-purple-100 text-purple-700','bg-rose-100 text-rose-700','bg-cyan-100 text-cyan-700','bg-red-100 text-red-700','bg-gray-100 text-gray-600'];
   @endphp
 
-  <a href="/cari" class="text-sm text-green-800 font-semibold">← Kembali ke pencarian</a>
+  <a href="/cari" class="inline-block mb-4 text-sm text-green-800 font-semibold">← Kembali ke pencarian</a>
 
   @php
   $galeri = $barang->fotos->pluck('path');
   if ($galeri->isEmpty() && $barang->foto) { $galeri = collect([$barang->foto]); }
 @endphp
-<div>
-  <div class="h-72 relative flex items-center justify-center {{ $warna[$barang->kategori_id - 1] ?? 'bg-gray-100' }}">
+<div data-galeri-root>
+  <div class="h-72 relative flex items-center justify-center overflow-hidden {{ $warna[$barang->kategori_id - 1] ?? 'bg-gray-100 text-gray-600' }}">
     @if ($galeri->isNotEmpty())
-      <img id="fotoUtama" src="{{ asset('storage/'.$galeri->first()) }}" class="absolute inset-0 w-full h-full object-cover" alt="">
+      <a data-galeri-link href="{{ asset('storage/'.$galeri->first()) }}" target="_blank" rel="noopener" aria-label="Buka foto barang ukuran penuh" class="absolute inset-0 cursor-zoom-in">
+        <img data-galeri-utama src="{{ asset('storage/'.$galeri->first()) }}" class="h-full w-full object-cover" alt="Foto {{ $barang->judul }}">
+      </a>
+      @if ($galeri->count() > 1)
+        <button type="button" data-galeri-arah="-1" aria-label="Foto sebelumnya" class="galeri-panah galeri-panah-kiri">‹</button>
+        <button type="button" data-galeri-arah="1" aria-label="Foto berikutnya" class="galeri-panah galeri-panah-kanan">›</button>
+      @endif
     @else
-      <span class="text-8xl">{{ $ikon[$barang->kategori_id - 1] ?? '📦' }}</span>
+      <x-ikon :nama="$ikon[$barang->kategori_id - 1] ?? 'paket'" class="w-20 h-20" />
     @endif
   </div>
   @if ($galeri->count() > 1)
-    <div class="flex gap-2 p-3">
+    <div class="flex gap-2 overflow-x-auto p-3">
       @foreach ($galeri as $f)
-        <img src="{{ asset('storage/'.$f) }}" data-galeri="fotoUtama" class="h-16 w-20 object-cover rounded-lg border cursor-pointer" alt="">
+        <button type="button" data-galeri-slide="{{ $loop->index }}" aria-label="Tampilkan foto {{ $loop->iteration }}" aria-pressed="{{ $loop->first ? 'true' : 'false' }}" class="shrink-0 overflow-hidden rounded-lg border-2 {{ $loop->first ? 'border-green-700' : 'border-transparent' }}">
+          <img src="{{ asset('storage/'.$f) }}" class="h-16 w-20 object-cover" alt="">
+        </button>
       @endforeach
     </div>
   @endif
@@ -37,14 +45,27 @@
       <div class="p-6 space-y-3">
         <div class="flex flex-wrap gap-2 text-xs">
           <span class="bg-green-100 text-green-800 font-semibold px-2.5 py-1 rounded-full">{{ $barang->kategori->nama }}</span>
-          <span class="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full">{{ $barang->kondisi }}</span>
+          <span class="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full">{{ $barang->labelKondisi() }}</span>
         </div>
         <h1 class="text-2xl font-extrabold">{{ $barang->judul }}</h1>
-        <div class="text-sm text-gray-500">
-          📍 {{ $barang->lokasi }} · dibagikan {{ $barang->created_at->locale('id')->diffForHumans() }}
-          oleh {{ \Illuminate\Support\Str::before($barang->user->name, ' ') }}
+        <div class="flex items-center gap-1.5 text-sm text-gray-500">
+          <x-ikon nama="lokasi" class="w-4 h-4 text-gray-400" />
+          <span>{{ $barang->lokasi }} · dibagikan {{ $barang->created_at->locale('id')->diffForHumans() }}
+          oleh {{ \Illuminate\Support\Str::before($barang->user->name, ' ') }}</span>
         </div>
+        @if ($barang->donasi?->kebutuhanMendesak)
+          <div class="rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900">
+            Donasi ini ditujukan untuk kampanye <b>{{ $barang->donasi->kebutuhanMendesak->judul }}</b> di {{ $barang->donasi->kebutuhanMendesak->lokasi }}.
+            <a href="/kebutuhan" class="ml-1 font-semibold underline">Lihat kebutuhan</a>
+          </div>
+        @endif
         <p class="text-gray-700 whitespace-pre-line">{{ $barang->deskripsi }}</p>
+        @if ($barang->isMakanan())
+          <div class="rounded-xl bg-amber-50 p-3 text-sm text-amber-900 space-y-1">
+            <div><b>Batas konsumsi:</b> {{ $barang->tanggal_kedaluwarsa ? $barang->tanggal_kedaluwarsa->format('d/m/Y') : 'Belum diisi' }}</div>
+            <div><b>Penyimpanan:</b> {{ $barang->cara_penyimpanan ?: 'Belum diisi' }}</div>
+          </div>
+        @endif
       </div>
     </div>
 

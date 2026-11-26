@@ -41,7 +41,7 @@
     </form>
     <dialog id="fotoProfilBesar" class="m-auto max-h-[90vh] max-w-[90vw] rounded-2xl bg-transparent p-0 backdrop:bg-black/75" aria-label="Foto profil ukuran besar" onclick="if (event.target === this) this.close()">
       <div class="relative">
-        <button type="button" class="absolute right-2 top-2 rounded-full bg-black/60 px-3 py-1 text-xl text-white" aria-label="Tutup foto" onclick="document.getElementById('fotoProfilBesar').close()">×</button>
+        <button type="button" class="foto-profil-tutup absolute right-2 top-2 px-2 py-1" aria-label="Tutup foto" onclick="document.getElementById('fotoProfilBesar').close()">×</button>
         <img src="{{ asset('storage/'.$u->foto_profil) }}" class="max-h-[85vh] max-w-[90vw] rounded-2xl object-contain" alt="Foto profil ukuran besar">
       </div>
     </dialog>
@@ -113,7 +113,7 @@
         <h2 class="font-extrabold">Verifikasi 2 langkah</h2>
         <p class="text-sm text-gray-600">
           @if ($u->totp_aktif)
-            <span class="text-green-700 font-semibold">✔ Aktif.</span> Kode pemulihan tersisa: {{ count((array) $u->totp_kode_pulih) }}.
+            <span class="inline-flex items-center gap-1 text-green-700 font-semibold"><x-ikon nama="cek" class="w-4 h-4" /> Aktif.</span> Kode pemulihan tersisa: {{ count((array) $u->totp_kode_pulih) }}.
             Kalau hampir habis atau HP hilang, hubungi atasan untuk pengaturan ulang.
           @else
             Belum aktif. <a href="/totp/aktifkan" class="text-green-800 font-semibold">Aktifkan sekarang →</a>

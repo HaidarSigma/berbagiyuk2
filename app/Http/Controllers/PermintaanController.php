@@ -30,14 +30,17 @@ class PermintaanController extends Controller
 
         Permintaan::create(['barang_id' => $barang->id, 'penerima_id' => $r->user()->id, 'pesan' => $data['pesan']]);
 
-        return redirect('/permintaan-saya')->with('status', 'Permintaan terkirim dan menunggu persetujuan admin.');
+        return redirect('/permintaan-saya')->with('sukses', [
+            'judul' => 'Permintaan terkirim!',
+            'pesan' => 'Admin akan memeriksa permintaanmu. Pantau statusnya di Permintaan Saya.',
+        ]);
     }
 
     public function saya()
     {
         abort_unless(auth()->user()->role === 'penerima', 403);
         return view('penerima.permintaan', [
-            'permintaan' => Permintaan::with('barang.kategori')->where('penerima_id', auth()->id())->latest()->get(),
+            'permintaan' => Permintaan::with('barang.kategori', 'barang.donasi.kebutuhanMendesak', 'tugas')->where('penerima_id', auth()->id())->latest()->get(),
         ]);
     }
 

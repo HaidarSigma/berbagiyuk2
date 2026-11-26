@@ -6,11 +6,11 @@
     $kontak = ['email' => 'kontak@berbagiyuk.test', 'telepon' => '0271-000000', 'alamat' => config('wilayah.nama').', Jawa Tengah'];
 
     $langkah = [
-      ['🎁', 'Donatur membagikan', 'Donatur mengirim barang beserta foto dan titik pengambilan.'],
-      ['✅', 'Admin memeriksa', 'Setiap barang diperiksa terhadap Aturan Barang sebelum tampil.'],
-      ['🔍', 'Penerima mengajukan', 'Penerima terverifikasi mencari barang dan menulis alasan kebutuhannya.'],
-      ['🤝', 'Admin menyetujui', 'Admin memilih permintaan yang paling membutuhkan.'],
-      ['🚚', 'Petugas mengantar', 'Petugas mengambil dari donatur lalu mengantar ke penerima.'],
+      ['hadiah', 'Donatur membagikan', 'Donatur mengirim barang beserta foto dan titik pengambilan.'],
+      ['centang-lingkaran', 'Admin memeriksa', 'Setiap barang diperiksa terhadap Aturan Barang sebelum tampil.'],
+      ['cari', 'Penerima mengajukan', 'Penerima terverifikasi mencari barang dan menulis alasan kebutuhannya.'],
+      ['hati-tangan', 'Admin menyetujui', 'Admin memilih permintaan yang paling membutuhkan.'],
+      ['truk', 'Petugas mengantar', 'Petugas mengambil dari donatur lalu mengantar ke penerima.'],
     ];
     $peran = [
       ['Donatur', 'Membagikan barang layak pakai yang sudah tidak terpakai.'],
@@ -37,7 +37,7 @@
 
   <div class="space-y-10">
     <section class="rounded-3xl bg-gradient-to-br from-green-100 via-green-50 to-white p-8 md:p-12">
-      <span class="inline-block bg-white text-green-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">🌱 Tentang BerbagiYuk</span>
+      <span class="inline-flex items-center gap-1.5 bg-white text-green-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm"><x-ikon nama="tunas" class="w-3.5 h-3.5" /> Tentang BerbagiYuk</span>
       <h1 class="mt-4 text-3xl md:text-4xl font-extrabold text-gray-900">Berbagi Sedikit, <span class="text-green-700">Berarti Banyak.</span></h1>
       <p class="mt-4 text-gray-600 max-w-2xl">BerbagiYuk mempertemukan orang yang punya barang layak pakai dengan orang yang membutuhkannya di area {{ config('wilayah.nama') }}. Pengambilan dan pengantaran dibantu petugas, dan setiap tahapnya diperiksa supaya barang sampai ke yang berhak.</p>
     </section>
@@ -47,7 +47,7 @@
       <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
         @foreach ($langkah as $i => [$ic, $judul, $ket])
           <div class="bg-white rounded-2xl shadow-sm p-4">
-            <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center text-xl">{{ $ic }}</div>
+            <div class="w-10 h-10 rounded-xl bg-green-100 text-green-700 flex items-center justify-center"><x-ikon :nama="$ic" class="w-5 h-5" /></div>
             <div class="text-xs text-gray-400 mt-3">Langkah {{ $i + 1 }}</div>
             <div class="font-bold text-sm">{{ $judul }}</div>
             <p class="text-xs text-gray-500 mt-1">{{ $ket }}</p>
@@ -69,7 +69,7 @@
         <h2 class="text-xl font-extrabold mb-4">Komitmen keamanan dan privasi</h2>
         <div class="bg-green-50 rounded-2xl p-5">
           <ul class="space-y-2 text-sm text-gray-700">
-            @foreach ($komitmen as $k)<li class="flex gap-2"><span class="text-green-700">✔</span><span>{{ $k }}</span></li>@endforeach
+            @foreach ($komitmen as $k)<li class="flex items-start gap-2"><x-ikon nama="cek" class="w-4 h-4 text-green-700 mt-0.5" /><span>{{ $k }}</span></li>@endforeach
           </ul>
         </div>
       </div>
@@ -92,11 +92,11 @@
       </div>
     </section>
 
-    <section class="bg-green-900 text-green-100 rounded-2xl p-6 text-sm space-y-1">
+    <section class="bg-green-900 text-green-100 rounded-2xl p-6 text-sm space-y-1.5">
       <h2 class="text-lg font-extrabold text-white mb-2">Hubungi kami</h2>
-      <div>✉️ {{ $kontak['email'] }}</div>
-      <div>📞 {{ $kontak['telepon'] }}</div>
-      <div>📍 {{ $kontak['alamat'] }}</div>
+      <div class="flex items-center gap-2"><x-ikon nama="surat" class="w-4 h-4 text-green-300" /> <span>{{ $kontak['email'] }}</span></div>
+      <div class="flex items-center gap-2"><x-ikon nama="telepon" class="w-4 h-4 text-green-300" /> <span>{{ $kontak['telepon'] }}</span></div>
+      <div class="flex items-center gap-2"><x-ikon nama="lokasi" class="w-4 h-4 text-green-300" /> <span>{{ $kontak['alamat'] }}</span></div>
     </section>
   </div>
 @endsection

@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use ZipArchive;
+use App\Support\StatusBackup;
 
 class BackupLengkap extends Command
 {
@@ -16,6 +17,7 @@ class BackupLengkap extends Command
 
     // Berkas yang sudah terkompres tidak dikompres lagi (lebih cepat)
     private const TANPA_KOMPRESI = ['jpg', 'jpeg', 'png', 'webp', 'mp4', 'webm', 'mov', 'enc'];
+    private string $hasil = '';
 
     // nama di dalam arsip => lokasi asli
     private function sumber(): array
@@ -30,24 +32,28 @@ class BackupLengkap extends Command
     }
 
     public function handle(): int
-    {
-        try {
-            $this->kerjakan();
+{
+    StatusBackup::mulai('lengkap');
 
-            return self::SUCCESS;
-        } catch (\Throwable $e) {
-            $this->error('Backup gagal: '.$e->getMessage());
-            report($e);
-            LogAktivitas::catat('backup_gagal', mb_substr($e->getMessage(), 0, 150));
-            PeringatanKeamanan::create([
-                'jenis'  => 'backup_gagal',
-                'pesan'  => 'Backup lengkap gagal: '.mb_substr($e->getMessage(), 0, 180),
-                'jumlah' => 1,
-            ]);
+    try {
+        $this->kerjakan();
+        StatusBackup::selesai('lengkap', $this->hasil);
 
-            return self::FAILURE;
-        }
+        return self::SUCCESS;
+    } catch (\Throwable $e) {
+        StatusBackup::gagal('lengkap', $e->getMessage());
+        $this->error('Backup gagal: '.$e->getMessage());
+        report($e);
+        LogAktivitas::catat('backup_gagal', mb_substr($e->getMessage(), 0, 150));
+        PeringatanKeamanan::create([
+            'jenis'  => 'backup_gagal',
+            'pesan'  => 'Backup lengkap gagal: '.mb_substr($e->getMessage(), 0, 180),
+            'jumlah' => 1,
+        ]);
+
+        return self::FAILURE;
     }
+}
 
     private function putar(string $dir, string $pola, int $simpan): void
     {
@@ -176,6 +182,7 @@ class BackupLengkap extends Command
         }
 
         $mb = round(filesize($jalurZip) / 1048576, 1);
+        $this->hasil = "{$namaZip} | {$mb} MB | ".array_sum($hitung).' berkas';
         $this->info("Backup selesai: {$namaZip} ({$mb} MB)");
         foreach ($hitung as $n => $j) {
             $this->line("  {$n}: {$j} berkas");

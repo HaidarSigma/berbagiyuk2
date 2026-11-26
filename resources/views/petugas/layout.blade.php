@@ -18,7 +18,7 @@
 <body class="petugas-panel font-sans text-gray-800">
 
 @php
-  $menu = [['/petugas', '🏠', 'Beranda'], ['/petugas/pengambilan', '📦', 'Pengambilan'], ['/petugas/pengiriman', '🚚', 'Pengiriman'], ['/petugas/riwayat', '🗂️', 'Riwayat']];
+  $menu = [['/petugas', 'rumah', 'Beranda'], ['/petugas/pengambilan', 'paket', 'Pengambilan'], ['/petugas/pengiriman', 'truk', 'Pengiriman'], ['/petugas/riwayat', 'arsip', 'Riwayat']];
   $item = 'flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-left';
 @endphp
 
@@ -33,16 +33,19 @@
     <nav class="space-y-1">
       @foreach ($menu as [$url, $ic, $nama])
         <a href="{{ $url }}" class="{{ $item }} {{ request()->is(trim($url, '/')) ? 'bg-blue-700 text-white font-semibold' : 'hover:bg-blue-800' }}">
-          <span class="w-5 text-center">{{ $ic }}</span><span>{{ $nama }}</span>
+          <x-ikon :nama="$ic" class="w-4 h-4" /><span>{{ $nama }}</span>
+          @if (($badge[$url] ?? 0) > 0)
+            <span class="ml-auto text-[11px] bg-red-500 text-white rounded-full px-2 py-0.5">{{ $badge[$url] }}</span>
+          @endif
         </a>
       @endforeach
     </nav>
 
     <div class="mt-auto space-y-1 border-t border-blue-800 pt-3">
-      <a href="/?lihat=1" class="{{ $item }} hover:bg-blue-800"><span class="w-5 text-center">🌐</span><span>Lihat Situs</span></a>
-      <a href="/pengaturan" class="{{ $item }} hover:bg-blue-800"><span class="w-5 text-center">⚙️</span><span>Pengaturan</span></a>
+      <a href="/?lihat=1" class="{{ $item }} hover:bg-blue-800"><x-ikon nama="dunia" class="w-4 h-4" /><span>Lihat Situs</span></a>
+      <a href="/pengaturan" class="{{ $item }} hover:bg-blue-800"><x-ikon nama="pengaturan" class="w-4 h-4" /><span>Pengaturan</span></a>
       <form method="POST" action="/keluar">@csrf
-        <button class="{{ $item }} hover:bg-red-600 hover:text-white"><span class="w-5 text-center">🚪</span><span>Keluar</span></button>
+        <button class="{{ $item }} hover:bg-red-600 hover:text-white"><x-ikon nama="keluar" class="w-4 h-4" /><span>Keluar</span></button>
       </form>
     </div>
   </aside>
@@ -51,6 +54,8 @@
     <header class="sticky top-0 z-10 bg-white border-b px-4 md:px-6 h-14 flex justify-between items-center">
       <h1 class="font-extrabold text-lg">@yield('judul')</h1>
       <div class="flex items-center gap-3 text-sm">
+        @include('partials.tombol-tema')
+        @include('partials.notifikasi-link', ['kelas' => 'inline-flex items-center gap-2 rounded-lg px-2 py-2 text-gray-700 hover:bg-gray-100'])
         @if (auth()->user()->foto_profil)
           <img src="{{ asset('storage/'.auth()->user()->foto_profil) }}" class="w-8 h-8 rounded-full object-cover" alt="">
         @else
@@ -74,12 +79,18 @@
 
 <nav class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t grid grid-cols-4 text-center text-[11px]">
   @foreach ($menu as [$url, $ic, $nama])
-    <a href="{{ $url }}" class="py-2 {{ request()->is(trim($url, '/')) ? 'text-blue-700 font-bold' : 'text-gray-500' }}">
-      <div class="text-xl leading-none">{{ $ic }}</div>{{ $nama }}
+    <a href="{{ $url }}" class="py-2 flex flex-col items-center gap-0.5 {{ request()->is(trim($url, '/')) ? 'text-blue-700 font-bold' : 'text-gray-500' }}">
+      <x-ikon :nama="$ic" class="w-5 h-5" />
+      <span>{{ $nama }}</span>
+      @if (($badge[$url] ?? 0) > 0)
+        <span class="ml-1 inline-block text-[9px] bg-red-500 text-white rounded-full px-1.5 py-0.5 align-top">{{ $badge[$url] }}</span>
+      @endif
     </a>
   @endforeach
 </nav>
 @include('partials.toast')
+@include('partials.sukses')
 @include('partials.interaksi')
+@include('partials.notifikasi-toast')
 </body>
 </html>

@@ -19,13 +19,16 @@
     </div>
   </div>
 
-  <div class="max-w-3xl mx-auto grid grid-cols-2 sm:grid-cols-3 gap-4">
+  <div class="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     @foreach ($barangs as $b)
       <div class="label bg-white border-2 border-dashed border-gray-400 rounded-xl p-4 text-center space-y-2">
         <div class="text-xs font-extrabold text-green-800">BerbagiYuk</div>
         <div id="qr-{{ $b->id }}" class="flex justify-center"></div>
         <div class="font-bold text-sm leading-tight">{{ $b->judul }}</div>
         <div class="text-[11px] text-gray-500">{{ $b->kategori->nama }}</div>
+        @if ($b->jumlahLabel())
+          <div class="text-[11px] font-semibold">{{ $b->jumlahLabel() }}</div>
+        @endif
         <code class="block text-[10px] break-all bg-gray-100 rounded p-1">{{ $b->token }}</code>
       </div>
     @endforeach
@@ -33,7 +36,7 @@
 
   <script nonce="{{ $cspNonce ?? '' }}">
     @foreach ($barangs as $b)
-      new QRCode(document.getElementById('qr-{{ $b->id }}'), { text: @json($b->token), width: 130, height: 130, correctLevel: QRCode.CorrectLevel.M });
+      new QRCode(document.getElementById('qr-{{ $b->id }}'), { text: @json($b->token), width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
     @endforeach
   </script>
 @include('partials.interaksi')

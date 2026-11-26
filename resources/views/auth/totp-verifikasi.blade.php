@@ -34,5 +34,6 @@
       const t = setInterval(() => { s--; if (s <= 0) { clearInterval(t); location.reload(); } else { el.textContent = s; } }, 1000);
     </script>
   @endif
+  @include('partials.tombol-tema', ['melayang' => true])
 </body>
 </html>
